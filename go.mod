@@ -4,6 +4,8 @@ go 1.21
 
 require github.com/gin-gonic/gin v1.9.1
 
+require github.com/joho/godotenv v1.5.1 // indirect
+
 require (
 	github.com/aws/aws-lambda-go v1.41.0
 	github.com/awslabs/aws-lambda-go-api-proxy v0.15.0
@@ -35,5 +37,5 @@ require (
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/driver/mysql v1.5.1 // indirect
-	gorm.io/gorm v1.25.4 // indirect
+	gorm.io/gorm v1.25.4
 )
