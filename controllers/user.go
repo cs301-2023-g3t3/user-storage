@@ -1,9 +1,11 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
+	"fmt"
 	"net/http"
 	"user-storage/models"
+
+	"github.com/gin-gonic/gin"
 )
 
 func GetUsers(c *gin.Context) {
@@ -13,10 +15,13 @@ func GetUsers(c *gin.Context) {
 }
 
 func GetUserByID(c *gin.Context) {
-	var user []models.User
+	var user models.User
 	id := c.Param("ID")
 	if result := models.DB.Find(&user, "id = ?", id); result.RowsAffected == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"message": "user not found"})
+		c.JSON(http.StatusNotFound, models.HTTPError{
+            Code: http.StatusNotFound,
+            Message: "User ID is not found",
+        })
 		return
 	}
 
@@ -26,6 +31,10 @@ func GetUserByID(c *gin.Context) {
 func AddUser(c *gin.Context) {
 	var user models.User
 	if err := c.BindJSON(&user); err != nil {
+        c.JSON(http.StatusInternalServerError, models.HTTPError{
+            Code: http.StatusInternalServerError,
+            Message: fmt.Sprintf("Unable to create user. %v" , err.Error()),
+        })
 		return
 	}
 	models.DB.Create(user)
@@ -35,7 +44,10 @@ func AddUser(c *gin.Context) {
 func EditUser(c *gin.Context) {
 	var user models.User
 	if err := c.BindJSON(&user); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid payload"})
+		c.JSON(http.StatusBadRequest, models.HTTPError{
+            Code: http.StatusBadRequest,
+            Message: fmt.Sprintf("Invalid payload. %v", err.Error()),
+        })
 		return
 	}
 	models.DB.Save(user)
