@@ -32,7 +32,7 @@ func InitRoutes() {
 	usersGroup.GET("/:ID", controllers.GetUserByID)
 	usersGroup.PUT("/:ID", controllers.EditUser)
 
-	env := os.Getenv("env")
+	env := os.Getenv("ENV")
 	if env == "lambda" {
 		ginLambda = ginadapter.New(router)
 		lambda.Start(Handler)
