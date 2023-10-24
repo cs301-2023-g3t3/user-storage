@@ -43,6 +43,7 @@ func AddUser(c *gin.Context) {
 
 func EditUser(c *gin.Context) {
     var user models.User
+    id := c.Param("ID")
     if err := c.BindJSON(&user); err != nil {
         c.JSON(http.StatusBadRequest, models.HTTPError{
             Code:    http.StatusBadRequest,
@@ -51,9 +52,11 @@ func EditUser(c *gin.Context) {
         return
     }
 
+    user.Id = id
+
     // Check if the user exists in the database
     existingUser := models.User{}
-    if err := models.DB.Where("id = ?", user.Id).First(&existingUser).Error; err != nil {
+    if err := models.DB.Where("id = ?", id).First(&existingUser).Error; err != nil {
         c.JSON(http.StatusNotFound, models.HTTPError{
             Code:    http.StatusNotFound,
             Message: "User not found",
