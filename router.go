@@ -25,9 +25,9 @@ func InitRoutes() {
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
-	v1 := router.Group("/api/v1")
+	v1 := router.Group("/users")
 
-	usersGroup := v1.Group("/users")
+	usersGroup := v1.Group("/accounts")
 
 	usersGroup.GET("", user.GetAllUsers)
 	usersGroup.GET("/:id", user.GetUserByID)
