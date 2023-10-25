@@ -16,7 +16,7 @@ jobs:
           go-version: "1.21"
 
       - name: Build
-        run: GOOS=linux GOARCH=amd64 go build -o main *.go
+        run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o main *.go
 
       - name: Zip
         run: zip ./terraform/main.zip main
