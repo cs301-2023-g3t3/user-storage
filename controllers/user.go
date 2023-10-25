@@ -6,17 +6,36 @@ import (
 	"user-storage/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 )
+
+var validate = validator.New()
 
 func GetUsers(c *gin.Context) {
 	var users []models.User
-	models.DB.Find(&users)
+    err := models.DB.Find(&users)
+    if err.Error != nil {
+        c.JSON(http.StatusInternalServerError, models.HTTPError{
+            Code: http.StatusInternalServerError,
+            Message: fmt.Sprintf("Error getting data. %v", err.Error.Error()),
+        })
+        return
+    }
 	c.JSON(http.StatusOK, users)
 }
 
 func GetUserByID(c *gin.Context) {
 	var user models.User
 	id := c.Param("ID")
+    if id == "" {
+		c.JSON(http.StatusBadRequest, models.HTTPError{
+            Code: http.StatusBadRequest,
+            Message: "User ID cannot be empty",
+        })
+		return
+    }
+
 	if result := models.DB.Find(&user, "id = ?", id); result.RowsAffected == 0 {
 		c.JSON(http.StatusNotFound, models.HTTPError{
             Code: http.StatusNotFound,
@@ -37,8 +56,28 @@ func AddUser(c *gin.Context) {
         })
 		return
 	}
-	models.DB.Create(user)
-	c.IndentedJSON(http.StatusCreated, user)
+
+    // Validate the inputs
+    if err := validate.Struct(&user); err != nil {
+        c.JSON(http.StatusBadRequest, models.HTTPError{
+            Code: http.StatusBadRequest,
+            Message: fmt.Sprintf("Unable to create user. %v" , err.Error()),
+        })
+        return
+    }
+
+    // generate new UUID for user
+    user.Id = uuid.NewString()
+
+    err := models.DB.Create(user)
+    if err.Error != nil {
+        c.JSON(http.StatusInternalServerError, models.HTTPError{
+            Code: http.StatusInternalServerError,
+            Message: fmt.Sprintf("Unable to create user. %v" , err.Error.Error()),
+        })
+        return
+    }
+	c.JSON(http.StatusCreated, user)
 }
 
 func EditUser(c *gin.Context) {

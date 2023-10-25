@@ -2,9 +2,11 @@ module user-storage
 
 go 1.21
 
-require github.com/gin-gonic/gin v1.9.1
-
-require github.com/joho/godotenv v1.5.1 // indirect
+require (
+	github.com/gin-gonic/gin v1.9.1
+	github.com/google/uuid v1.3.1
+	github.com/joho/godotenv v1.5.1
+)
 
 require (
 	github.com/aws/aws-lambda-go v1.41.0
@@ -36,6 +38,6 @@ require (
 	golang.org/x/text v0.9.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	gorm.io/driver/mysql v1.5.1 // indirect
+	gorm.io/driver/mysql v1.5.1
 	gorm.io/gorm v1.25.4
 )
