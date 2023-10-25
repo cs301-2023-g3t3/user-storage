@@ -15,3 +15,5 @@
 *.out
 
 go.work
+
+terraform/.terraform**
