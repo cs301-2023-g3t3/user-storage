@@ -12,7 +12,6 @@ terraform {
 }
 
 resource "aws_lambda_function" "this" {
-  depends_on = ["archive_file.zipped"]
   function_name    = "user-storage-api"
   runtime          = "go1.x"
   handler          = "main"
