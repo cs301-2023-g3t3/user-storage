@@ -10,9 +10,11 @@ import (
 	"github.com/google/uuid"
 )
 
+type UserController struct {}
+
 var validate = validator.New()
 
-func GetUsers(c *gin.Context) {
+func (t UserController) GetAllUsers(c *gin.Context) {
 	var users []models.User
     err := models.DB.Find(&users)
     if err.Error != nil {
@@ -25,9 +27,9 @@ func GetUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 
-func GetUserByID(c *gin.Context) {
+func (t UserController) GetUserByID(c *gin.Context) {
 	var user models.User
-	id := c.Param("ID")
+	id := c.Param("id")
     if id == "" {
 		c.JSON(http.StatusBadRequest, models.HTTPError{
             Code: http.StatusBadRequest,
@@ -47,7 +49,7 @@ func GetUserByID(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-func AddUser(c *gin.Context) {
+func (t UserController) AddUser(c *gin.Context) {
 	var user models.User
 	if err := c.BindJSON(&user); err != nil {
         c.JSON(http.StatusInternalServerError, models.HTTPError{
@@ -80,9 +82,9 @@ func AddUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, user)
 }
 
-func EditUser(c *gin.Context) {
+func (t UserController) UpdateUserById(c *gin.Context) {
     var user models.User
-    id := c.Param("ID")
+    id := c.Param("id")
     if err := c.BindJSON(&user); err != nil {
         c.JSON(http.StatusBadRequest, models.HTTPError{
             Code:    http.StatusBadRequest,
@@ -98,7 +100,7 @@ func EditUser(c *gin.Context) {
     if err := models.DB.Where("id = ?", id).First(&existingUser).Error; err != nil {
         c.JSON(http.StatusNotFound, models.HTTPError{
             Code:    http.StatusNotFound,
-            Message: "User not found",
+            Message: "User not found with given ID",
         })
         return
     }
@@ -115,5 +117,34 @@ func EditUser(c *gin.Context) {
     }
 
     // Return the updated user
-    c.IndentedJSON(http.StatusOK, existingUser)
+    c.JSON(http.StatusOK, existingUser)
+}
+
+func (t UserController) DeleteUserById(c *gin.Context) {
+    id := fmt.Sprint(c.Param("id"))
+    if id == "" {
+        c.JSON(http.StatusBadRequest, models.HTTPError{
+            Code: http.StatusBadRequest,
+            Message: "User ID cannot be empty",
+        })
+    }
+
+    existingUser := models.User{}
+    if err := models.DB.Where("id = ?", id).First(&existingUser).Error; err != nil {
+        c.JSON(http.StatusNotFound, models.HTTPError{
+            Code:    http.StatusNotFound,
+            Message: "User not found with given ID",
+        })
+        return
+    }
+
+    err := models.DB.Where("id = ?", id).Delete(&existingUser)
+    if err.Error != nil {
+        c.JSON(http.StatusBadRequest, models.HTTPError{
+            Code: http.StatusBadRequest,
+            Message: fmt.Sprintf("Unable to delete data. %v", err.Error.Error()),
+        })
+        return
+    }
+    c.JSON(http.StatusOK, "Success")
 }

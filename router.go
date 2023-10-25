@@ -20,6 +20,8 @@ func Handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 func InitRoutes() {
 	router := gin.Default()
 
+    user := new(controllers.UserController)
+
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
@@ -27,10 +29,14 @@ func InitRoutes() {
 
 	usersGroup := v1.Group("/users")
 
-	usersGroup.GET("", controllers.GetUsers)
-	usersGroup.POST("", controllers.AddUser)
-	usersGroup.GET("/:ID", controllers.GetUserByID)
-	usersGroup.PUT("/:ID", controllers.EditUser)
+	usersGroup.GET("", user.GetAllUsers)
+	usersGroup.GET("/:id", user.GetUserByID)
+
+	usersGroup.POST("", user.AddUser)
+
+	usersGroup.PUT("/:id", user.UpdateUserById)
+
+    usersGroup.DELETE("/:id", user.DeleteUserById)
 
 	env := os.Getenv("ENV")
 	if env == "lambda" {
