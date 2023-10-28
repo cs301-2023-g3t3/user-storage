@@ -78,8 +78,6 @@ func (t RoleAccessController) DeleteRoleAccess(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(existingRoleAccess)
-
 	if result := models.DB.Where("role_id = ? AND ap_id = ?", roleAccess.RoleId, roleAccess.APId).Delete(&existingRoleAccess); result.Error != nil {
 		c.JSON(http.StatusInternalServerError, models.HTTPError{
 			Code: http.StatusInternalServerError,
