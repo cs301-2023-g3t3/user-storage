@@ -21,8 +21,6 @@ func (t AccessPointController) GetAllAccessPoints(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(accessPoints[0])
-
 	c.JSON(http.StatusOK, accessPoints)
 }
 
