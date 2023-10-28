@@ -27,6 +27,7 @@ func InitRoutes() {
 
 	v1 := router.Group("/users")
 
+	// Account Routes
 	usersGroup := v1.Group("/accounts")
 
 	usersGroup.GET("", user.GetAllUsers)
@@ -37,6 +38,46 @@ func InitRoutes() {
 	usersGroup.PUT("/:id", user.UpdateUserById)
 
     usersGroup.DELETE("/:id", user.DeleteUserById)
+
+
+	// Role Routes
+	role := new(controllers.RoleController)
+
+	rolesGroup := v1.Group("/roles")
+
+	rolesGroup.GET("", role.GetAllRoles)
+	rolesGroup.GET("/:id", role.GetRoleByID)
+
+	rolesGroup.POST("", role.AddRole)
+
+	rolesGroup.PUT("/:id", role.UpdateRoleById)
+
+	rolesGroup.DELETE("/:id", role.DeleteRoleById)
+
+	// Access Points
+	accessPoint := new(controllers.AccessPointController)
+
+	accessPointsGroup := v1.Group("/access-points")
+
+	accessPointsGroup.GET("", accessPoint.GetAllAccessPoints)
+	accessPointsGroup.GET("/:id", accessPoint.GetAccessPointByID)
+
+	accessPointsGroup.POST("", accessPoint.AddAccessPoint)
+
+	accessPointsGroup.PUT("/:id", accessPoint.UpdateAccessPoint)
+
+	accessPointsGroup.DELETE("/:id", accessPoint.DeleteAccessPoint)
+
+	// Role Access
+	roleAccess := new(controllers.RoleAccessController)
+
+	roleAccessesGroup := v1.Group("/role-access")
+
+	roleAccessesGroup.GET("", roleAccess.GetAllRoleAccesses)
+
+	roleAccessesGroup.POST("", roleAccess.AddRoleAccess)
+
+	roleAccessesGroup.DELETE("", roleAccess.DeleteRoleAccess)
 
 	env := os.Getenv("ENV")
 	if env == "lambda" {
