@@ -149,23 +149,25 @@ func (t UserController) DeleteUserById(c *gin.Context) {
     c.JSON(http.StatusOK, "Success")
 }
 
-func (t UserController) GetUsersWithRole (c *gin.Context) {
+func (t UserController) GetUsersWithRole(c *gin.Context) {
     var users []models.User
     var input struct {
-        Roles []int `json:"roles"`
+        Roles []string `json:"roles"`
     }
     if err := c.BindJSON(&input); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
     roles := input.Roles
-    err := models.DB.Where("role IN ?", roles).Find(&users)
+    err := models.DB.Joins("JOIN roles ON roles.id = users.role").
+        Where("roles.name IN ?", roles).
+        Find(&users)
     if err.Error != nil {
         c.JSON(http.StatusInternalServerError, models.HTTPError{
-            Code: http.StatusInternalServerError,
+            Code:    http.StatusInternalServerError,
             Message: fmt.Sprintf("Error getting data. %v", err.Error.Error()),
         })
         return
     }
-	c.JSON(http.StatusOK, users)
+    c.JSON(http.StatusOK, users)
 }
