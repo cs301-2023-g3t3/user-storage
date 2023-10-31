@@ -20,7 +20,7 @@ func Handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 func InitRoutes() {
 	router := gin.Default()
 
-    user := new(controllers.UserController)
+	user := new(controllers.UserController)
 
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
@@ -34,10 +34,11 @@ func InitRoutes() {
 	usersGroup.GET("/:id", user.GetUserByID)
 
 	usersGroup.POST("", user.AddUser)
+	usersGroup.POST("/with-roles", user.GetUsersWithRole)
 
 	usersGroup.PUT("/:id", user.UpdateUserById)
 
-    usersGroup.DELETE("/:id", user.DeleteUserById)
+	usersGroup.DELETE("/:id", user.DeleteUserById)
 
 
 	// Role Routes
