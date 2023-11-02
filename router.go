@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"user-storage/controllers"
+	"user-storage/middlewares"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -27,6 +28,7 @@ func InitRoutes() {
 
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
+	router.Use(middlewares.LoggingMiddleware())
 
 	v1 := router.Group("/users")
 

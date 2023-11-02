@@ -8,7 +8,10 @@ require (
 	github.com/joho/godotenv v1.5.1
 )
 
-require github.com/gin-contrib/cors v1.4.0 // indirect
+require (
+	github.com/gin-contrib/cors v1.4.0 // indirect
+	github.com/sirupsen/logrus v1.9.3 // indirect
+)
 
 require (
 	github.com/aws/aws-lambda-go v1.41.0
