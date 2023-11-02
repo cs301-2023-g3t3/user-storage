@@ -152,13 +152,13 @@ func (t UserController) DeleteUserById(c *gin.Context) {
 func (t UserController) GetUsersWithRole(c *gin.Context) {
 	var users []models.User
 	var input struct {
-		Roles []string `json:"roles"`
+		Roles []int `json:"roles"`
 	}
 	if err := c.BindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-    
+
 	roles := input.Roles
 	err := models.DB.Where("role IN ?", roles).Find(&users)
 	if err.Error != nil {
