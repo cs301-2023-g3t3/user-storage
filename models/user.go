@@ -5,5 +5,5 @@ type User struct {
     FirstName string    `json:"firstName" validate:"required"`
     LastName  string    `json:"lastName" validate:"required"`
     Email     string    `json:"email" validate:"required,email"`
-    Role      int       `json:"role" gorm:"default:null"`
+    Role      *uint       `json:"role" gorm:"default:null"`
 }
