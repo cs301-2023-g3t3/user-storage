@@ -10,39 +10,39 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserController struct {}
+type UserController struct{}
 
 var validate = validator.New()
 
 func (t UserController) GetAllUsers(c *gin.Context) {
 	var users []models.User
-    err := models.DB.Find(&users)
-    if err.Error != nil {
-        c.JSON(http.StatusInternalServerError, models.HTTPError{
-            Code: http.StatusInternalServerError,
-            Message: fmt.Sprintf("Error getting data. %v", err.Error.Error()),
-        })
-        return
-    }
+	err := models.DB.Find(&users)
+	if err.Error != nil {
+		c.JSON(http.StatusInternalServerError, models.HTTPError{
+			Code:    http.StatusInternalServerError,
+			Message: fmt.Sprintf("Error getting data. %v", err.Error.Error()),
+		})
+		return
+	}
 	c.JSON(http.StatusOK, users)
 }
 
 func (t UserController) GetUserByID(c *gin.Context) {
 	var user models.User
 	id := c.Param("id")
-    if id == "" {
+	if id == "" {
 		c.JSON(http.StatusBadRequest, models.HTTPError{
-            Code: http.StatusBadRequest,
-            Message: "User ID cannot be empty",
-        })
+			Code:    http.StatusBadRequest,
+			Message: "User ID cannot be empty",
+		})
 		return
-    }
+	}
 
 	if result := models.DB.Find(&user, "id = ?", id); result.RowsAffected == 0 {
 		c.JSON(http.StatusNotFound, models.HTTPError{
-            Code: http.StatusNotFound,
-            Message: "User ID is not found",
-        })
+			Code:    http.StatusNotFound,
+			Message: "User ID is not found",
+		})
 		return
 	}
 
@@ -52,13 +52,13 @@ func (t UserController) GetUserByID(c *gin.Context) {
 func (t UserController) AddUser(c *gin.Context) {
 	var user models.User
 	if err := c.BindJSON(&user); err != nil {
-        c.JSON(http.StatusInternalServerError, models.HTTPError{
-            Code: http.StatusInternalServerError,
-            Message: fmt.Sprintf("Unable to create user. %v" , err.Error()),
-        })
+		c.JSON(http.StatusInternalServerError, models.HTTPError{
+			Code:    http.StatusInternalServerError,
+			Message: fmt.Sprintf("Unable to create user. %v", err.Error()),
+		})
 		return
 	}
-
+  
     // Validate the inputs
     if err := validate.Struct(&user); err != nil {
         c.JSON(http.StatusBadRequest, models.HTTPError{
@@ -81,7 +81,7 @@ func (t UserController) AddUser(c *gin.Context) {
     }
     
     c.Set("user", user)
-	c.JSON(http.StatusCreated, user)
+	  c.JSON(http.StatusCreated, user)
 }
 
 func (t UserController) UpdateUserById(c *gin.Context) {
@@ -155,24 +155,23 @@ func (t UserController) DeleteUserById(c *gin.Context) {
 }
 
 func (t UserController) GetUsersWithRole(c *gin.Context) {
-    var users []models.User
-    var input struct {
-        Roles []string `json:"roles"`
-    }
-    if err := c.BindJSON(&input); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-        return
-    }
-    roles := input.Roles
-    err := models.DB.Joins("JOIN roles ON roles.id = users.role").
-        Where("roles.name IN ?", roles).
-        Find(&users)
-    if err.Error != nil {
-        c.JSON(http.StatusInternalServerError, models.HTTPError{
-            Code:    http.StatusInternalServerError,
-            Message: fmt.Sprintf("Error getting data. %v", err.Error.Error()),
-        })
-        return
-    }
-    c.JSON(http.StatusOK, users)
+	var users []models.User
+	var input struct {
+		Roles []int `json:"roles"`
+	}
+	if err := c.BindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	roles := input.Roles
+	err := models.DB.Where("role IN ?", roles).Find(&users)
+	if err.Error != nil {
+		c.JSON(http.StatusInternalServerError, models.HTTPError{
+			Code:    http.StatusInternalServerError,
+			Message: fmt.Sprintf("Error getting data. %v", err.Error.Error()),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, users)
 }
