@@ -5,6 +5,7 @@ import (
 	"os"
 	"user-storage/controllers"
 	"user-storage/middlewares"
+	"user-storage/models"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -16,19 +17,28 @@ import (
 var ginLambda *ginadapter.GinLambda
 
 func Handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+
+	metadata := models.RequestMetadata{
+		UserAgent: req.RequestContext.Identity.UserAgent,
+		SourceIP:  req.RequestContext.Identity.SourceIP,
+	}
+
+	// ctx = context.WithValue(ctx, "UserAgent", req.RequestContext.Identity.UserAgent)
+	// ctx = context.WithValue(ctx, "SourceIP", req.RequestContext.Identity.SourceIP)
+	ctx = context.WithValue(ctx, "RequestMetadata", metadata)
+
 	return ginLambda.ProxyWithContext(ctx, req)
 }
 
 func InitRoutes() {
-	router := gin.Default()
+	router := gin.New()
 
+	// router.Use(gin.Logger())
+	router.Use(gin.Recovery())
 	router.Use(cors.Default())
+	router.Use(middlewares.LoggingMiddleware())
 
 	user := new(controllers.UserController)
-
-	router.Use(gin.Logger())
-	router.Use(gin.Recovery())
-	router.Use(middlewares.LoggingMiddleware())
 
 	v1 := router.Group("/users")
 
@@ -44,7 +54,6 @@ func InitRoutes() {
 	usersGroup.PUT("/:id", user.UpdateUserById)
 
 	usersGroup.DELETE("/:id", user.DeleteUserById)
-
 
 	// Role Routes
 	role := new(controllers.RoleController)

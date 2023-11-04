@@ -4,7 +4,10 @@ package middlewares
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
+	"user-storage/models"
+
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )
@@ -21,7 +24,7 @@ func LoggingMiddleware() gin.HandlerFunc {
 		endTime := time.Now()
 
 		// Execution time
-		latencyTime := endTime.Sub(startTime)
+		latencyTime := endTime.Sub(startTime).Milliseconds()
 
 		// Request data
 		reqMethod := ctx.Request.Method
@@ -40,27 +43,105 @@ func LoggingMiddleware() gin.HandlerFunc {
 			fmt.Println("SourceIP in middleware: ", sourceIP)
 		}
 
-		// Request IP
-		if reqMethod == http.MethodPost {
-			log.WithFields(log.Fields{
-				"METHOD":     reqMethod,
-				"URI":        reqUri,
-				"STATUS":     statusCode,
-				"LATENCY":    latencyTime,
-				"USER_AGENT": userAgent,
-				"SOURCE_IP":  sourceIP,
-			}).Info("HTTP POST REQUEST")
+		// Logs for user accounts
+		if strings.Contains(reqUri, "/accounts") {
+			user, _ := ctx.Get("user")
+			userValue, _ := user.(models.User)
+
+			if reqMethod == http.MethodPost || reqMethod == http.MethodPut || reqMethod == http.MethodDelete {
+				var action string
+				var updatedUserFields log.Fields
+				if reqMethod == http.MethodPost {
+					action = "add user"
+				} else if reqMethod == http.MethodPut {
+					action = "update user"
+					newUser, _ := ctx.Get("updatedUser")
+					newUserValue, _ := newUser.(models.User)
+					updatedUserFields = log.Fields{
+						"id":        newUserValue.Id,
+						"firstName": newUserValue.FirstName,
+						"lastName":  newUserValue.LastName,
+						"email":     newUserValue.Email,
+						"role":      newUserValue.Role,
+					}
+				} else if reqMethod == http.MethodDelete {
+					action = "delete user"
+				}
+
+				userFields := log.Fields{
+					"id":        userValue.Id,
+					"firstName": userValue.FirstName,
+					"lastName":  userValue.LastName,
+					"email":     userValue.Email,
+					"role":      userValue.Role,
+				}
+
+				log.WithFields(log.Fields{
+					"METHOD":               reqMethod,
+					"URI":                  reqUri,
+					"STATUS":               statusCode,
+					"LATENCY":              latencyTime,
+					"USER_DETAILS":         userFields,
+					"UPDATED_USER_DETAILS": updatedUserFields,
+					"ACTION":               action,
+					"USER_AGENT":           userAgent,
+					"SOURCE_IP":            sourceIP,
+				}).Info("ACCOUNT REQUEST")
+			}
 		}
 
-		if reqMethod == http.MethodGet {
-			log.WithFields(log.Fields{
-				"METHOD":     reqMethod,
-				"URI":        reqUri,
-				"STATUS":     statusCode,
-				"LATENCY":    latencyTime,
-				"USER_AGENT": userAgent,
-				"CLIENT_IP":  sourceIP,
-			}).Info("HTTP GET REQUEST")
+		// Logs for roles
+		if strings.Contains(reqUri, "/roles") {
+			role, _ := ctx.Get("role")
+			if (role != nil) {}
+			roleValue, _ := role.(models.Role)
+
+			roleFields := log.Fields{
+				"id":   roleValue.Id,
+				"name": roleValue.Name,
+			}
+
+			if reqMethod == http.MethodPost || reqMethod == http.MethodPut || reqMethod == http.MethodDelete {
+				var action string
+				var updatedRoleFields log.Fields
+
+				if reqMethod == http.MethodPost {
+					action = "add role"
+				} else if reqMethod == http.MethodPut {
+					action = "update role"
+					newRole, _ := ctx.Get("updatedRole")
+					newRoleValue, _ := newRole.(models.Role)
+					updatedRoleFields = log.Fields{
+						"id":   newRoleValue.Id,
+						"name": newRoleValue.Name,
+					}
+				} else if reqMethod == http.MethodDelete {
+					action = "delete role"
+				}
+
+				log.WithFields(log.Fields{
+					"METHOD":               reqMethod,
+					"URI":                  reqUri,
+					"STATUS":               statusCode,
+					"LATENCY":              latencyTime,
+					"ROLE_DETAILS":         roleFields,
+					"UPDATED_ROLE_DETAILS": updatedRoleFields,
+					"ACTION":               action,
+					"USER_AGENT":           userAgent,
+					"SOURCE_IP":            sourceIP,
+				}).Info("ROLE REQUEST")
+			}
 		}
+
+		// if reqMethod == http.MethodGet {
+		// 	log.WithFields(log.Fields{
+		// 		"METHOD":     reqMethod,
+		// 		"URI":        reqUri,
+		// 		"STATUS":     statusCode,
+		// 		"LATENCY":    latencyTime,
+		// 		"USER_AGENT": userAgent,
+		// 		"CLIENT_IP":  sourceIP,
+		// 	}).Info("HTTP GET REQUEST")
+		// }
 	}
 }

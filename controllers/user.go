@@ -79,6 +79,8 @@ func (t UserController) AddUser(c *gin.Context) {
         })
         return
     }
+    
+    c.Set("user", user)
 	c.JSON(http.StatusCreated, user)
 }
 
@@ -92,6 +94,7 @@ func (t UserController) UpdateUserById(c *gin.Context) {
         })
         return
     }
+    c.Set("user", user)
 
     user.Id = id
 
@@ -117,6 +120,7 @@ func (t UserController) UpdateUserById(c *gin.Context) {
     }
 
     // Return the updated user
+    c.Set("updatedUser", user)
     c.JSON(http.StatusOK, existingUser)
 }
 
@@ -146,6 +150,7 @@ func (t UserController) DeleteUserById(c *gin.Context) {
         })
         return
     }
+    c.Set("user", existingUser)
     c.JSON(http.StatusOK, "Success")
 }
 
