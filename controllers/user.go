@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"user-storage/cache"
 	"user-storage/models"
 
 	"github.com/gin-gonic/gin"
@@ -119,6 +120,13 @@ func (t UserController) UpdateUserById(c *gin.Context) {
         return
     }
 
+    deletedCount, cacheErr := cache.RedisClient.Del(id).Result()
+	if cacheErr != nil {
+		fmt.Println("Error:", cacheErr)
+	} else {
+		fmt.Printf("Deleted %d keys\n", deletedCount)
+	}
+    
     // Return the updated user
     c.Set("updatedUser", user)
     c.JSON(http.StatusOK, existingUser)
@@ -150,8 +158,17 @@ func (t UserController) DeleteUserById(c *gin.Context) {
         })
         return
     }
+
+    deletedCount, cacheErr := cache.RedisClient.Del(id).Result()
+	if cacheErr != nil {
+		fmt.Println("Error:", cacheErr)
+	} else {
+		fmt.Printf("Deleted %d keys\n", deletedCount)
+	}
     c.Set("user", existingUser)
     c.JSON(http.StatusOK, "Success")
+
+    
 }
 
 func (t UserController) GetUsersWithRole(c *gin.Context) {
