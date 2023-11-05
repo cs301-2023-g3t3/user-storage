@@ -1,12 +1,15 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
+	"user-storage/cache"
 	"user-storage/models"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func init() {
 	models.ConnectToDB()
+	cache.ConnectToRedis()
 	log.SetFormatter(&log.JSONFormatter{})
 
 }

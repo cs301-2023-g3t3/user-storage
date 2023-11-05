@@ -93,7 +93,6 @@ func LoggingMiddleware() gin.HandlerFunc {
 		// Logs for roles
 		if strings.Contains(reqUri, "/roles") {
 			role, _ := ctx.Get("role")
-			if (role != nil) {}
 			roleValue, _ := role.(models.Role)
 
 			roleFields := log.Fields{
