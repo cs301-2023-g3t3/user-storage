@@ -20,6 +20,11 @@ resource "aws_lambda_function" "this" {
   source_code_hash = filebase64sha256("./main.zip")
   timeout          = 10
 
+  vpc_config {
+    subnet_ids         = ["subnet-067ead2dfed1c40f8"]
+    security_group_ids = ["sg-05a445100fc469383"]
+  }
+
   environment {
     variables = {
       ENV         = "lambda"
@@ -28,7 +33,7 @@ resource "aws_lambda_function" "this" {
       DB_USER     = data.aws_ssm_parameter.db_user.value
       DB_PASSWORD = data.aws_ssm_parameter.db_password.value
       DB_NAME     = "itsa"
-      REDIS_HOST=data.aws_ssm_parameter.redis_host.value
+      REDIS_HOST  = data.aws_ssm_parameter.redis_host.value
     }
   }
 }
