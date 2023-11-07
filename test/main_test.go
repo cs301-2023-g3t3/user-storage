@@ -40,11 +40,14 @@ func TestGetAllUsers(t *testing.T) {
     role := uint(4)
     expectedUsers := []models.User{
         {Id: "1", FirstName: "John", LastName: "Doe", Email: "john@example.com", Role: &role},
+        {Id: "2", FirstName: "Yoa", LastName: "Lung", Email: "yoa@lung.com", Role: &role},
     }
 
     // Define your expected rows and columns
     columns := []string{"id", "first_name", "last_name", "email", "role"}
-    expectedRows := sqlmock.NewRows(columns).AddRow("1", "John", "Doe", "john@example.com", 4)
+    expectedRows := sqlmock.NewRows(columns).
+        AddRow("1", "John", "Doe", "john@example.com", 4).
+        AddRow("2", "Yoa", "Lung", "yoa@lung.com", 4)
 
     // Set up the mock expectations for the SQL query
     mock.ExpectQuery("SELECT * FROM `users`").WillReturnRows(expectedRows)
