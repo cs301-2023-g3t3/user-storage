@@ -6,47 +6,53 @@ import (
 	"net/http"
 	"user-storage/cache"
 	"user-storage/models"
+	"user-storage/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
-)
 
-type UserController struct{}
+	"gorm.io/gorm"
+)
+type UserController struct{
+    DB  *gorm.DB
+    UserService *services.UserService
+}
+
+func NewUserController(db gorm.DB) *UserController {
+    return &UserController{
+        DB: &db,
+        UserService: services.NewUserService(&db),
+    }
+}
 
 var validate = validator.New()
 
 func (t UserController) GetAllUsers(c *gin.Context) {
 	var users []models.User
-	err := models.DB.Find(&users)
-	if err.Error != nil {
-		c.JSON(http.StatusInternalServerError, models.HTTPError{
-			Code:    http.StatusInternalServerError,
-			Message: fmt.Sprintf("Error getting data. %v", err.Error.Error()),
+
+    code, err := t.UserService.GetAllUsers(&users)
+	if err != nil {
+		c.JSON(code, models.HTTPError{
+			Code:    code,
+			Message: fmt.Sprintf("Error getting data. %v", err.Error()),
 		})
 		return
 	}
-	c.JSON(http.StatusOK, users)
+	c.JSON(code, users)
 }
 
 func (t UserController) GetUserByID(c *gin.Context) {
 	var user models.User
 	id := c.Param("id")
-	if id == "" {
-		c.JSON(http.StatusBadRequest, models.HTTPError{
-			Code:    http.StatusBadRequest,
-			Message: "User ID cannot be empty",
-		})
-		return
-	}
 
-	if result := models.DB.Find(&user, "id = ?", id); result.RowsAffected == 0 {
-		c.JSON(http.StatusNotFound, models.HTTPError{
-			Code:    http.StatusNotFound,
-			Message: "User ID is not found",
-		})
-		return
-	}
+    code, err := t.UserService.GetUserByID(&user, id)
+    if err != nil {
+        c.JSON(code, models.HTTPError{
+            Code: code,
+            Message: fmt.Sprintf("Failed to retrieve user: %v", err.Error()),
+        })
+        return
+    }
 
 	c.JSON(http.StatusOK, user)
 }
@@ -60,30 +66,18 @@ func (t UserController) AddUser(c *gin.Context) {
 		})
 		return
 	}
+
+    code, err := t.UserService.AddUser(&user)
+    if err != nil {
+        c.JSON(code, models.HTTPError{
+            Code: code,
+            Message: fmt.Sprintf("Unable to create user. %v", err.Error()),
+        })
+        return
+    }
   
-    // Validate the inputs
-    if err := validate.Struct(&user); err != nil {
-        c.JSON(http.StatusBadRequest, models.HTTPError{
-            Code: http.StatusBadRequest,
-            Message: fmt.Sprintf("Unable to create user. %v" , err.Error()),
-        })
-        return
-    }
-
-    // generate new UUID for user
-    user.Id = uuid.NewString()
-
-    err := models.DB.Create(user)
-    if err.Error != nil {
-        c.JSON(http.StatusInternalServerError, models.HTTPError{
-            Code: http.StatusInternalServerError,
-            Message: fmt.Sprintf("Unable to create user. %v" , err.Error.Error()),
-        })
-        return
-    }
-    
     c.Set("user", user)
-	  c.JSON(http.StatusCreated, user)
+	c.JSON(code, user)
 }
 
 func (t UserController) UpdateUserById(c *gin.Context) {
@@ -98,25 +92,11 @@ func (t UserController) UpdateUserById(c *gin.Context) {
     }
     c.Set("user", user)
 
-    user.Id = id
-
-    // Check if the user exists in the database
-    existingUser := models.User{}
-    if err := models.DB.Where("id = ?", id).First(&existingUser).Error; err != nil {
-        c.JSON(http.StatusNotFound, models.HTTPError{
-            Code:    http.StatusNotFound,
-            Message: "User not found with given ID",
-        })
-        return
-    }
-
-    // Update the user's data
-    models.DB.Model(&existingUser).Updates(user)
-
-    if models.DB.Error != nil {
-        c.JSON(http.StatusInternalServerError, models.HTTPError{
-            Code:    http.StatusInternalServerError,
-            Message: "Failed to update user",
+    code, err := t.UserService.UpdateUserById(&user, id)
+    if err != nil {
+        c.JSON(code, models.HTTPError{
+            Code: code,
+            Message: fmt.Sprintf("Unable to create user. %v", err.Error()),
         })
         return
     }
@@ -130,32 +110,18 @@ func (t UserController) UpdateUserById(c *gin.Context) {
     
     // Return the updated user
     c.Set("updatedUser", user)
-    c.JSON(http.StatusOK, existingUser)
+    c.JSON(code, user)
 }
 
 func (t UserController) DeleteUserById(c *gin.Context) {
-    id := fmt.Sprint(c.Param("id"))
-    if id == "" {
-        c.JSON(http.StatusBadRequest, models.HTTPError{
-            Code: http.StatusBadRequest,
-            Message: "User ID cannot be empty",
-        })
-    }
+    id := c.Param("id")
 
     existingUser := models.User{}
-    if err := models.DB.Where("id = ?", id).First(&existingUser).Error; err != nil {
-        c.JSON(http.StatusNotFound, models.HTTPError{
-            Code:    http.StatusNotFound,
-            Message: "User not found with given ID",
-        })
-        return
-    }
-
-    err := models.DB.Where("id = ?", id).Delete(&existingUser)
-    if err.Error != nil {
-        c.JSON(http.StatusBadRequest, models.HTTPError{
-            Code: http.StatusBadRequest,
-            Message: fmt.Sprintf("Unable to delete data. %v", err.Error.Error()),
+    code, err := t.UserService.DeleteUserById(&existingUser, id)
+    if err != nil {
+        c.JSON(code, models.HTTPError{
+            Code: code,
+            Message: fmt.Sprintf("Unable to delete user. %v", err.Error()),
         })
         return
     }
@@ -166,10 +132,10 @@ func (t UserController) DeleteUserById(c *gin.Context) {
 	} else {
 		fmt.Printf("Deleted %d keys\n", deletedCount)
 	}
-    c.Set("user", existingUser)
-    c.JSON(http.StatusOK, "Success")
 
-    
+    c.Set("user", existingUser)
+    fmt.Print(existingUser)
+    c.JSON(http.StatusOK, "Success")
 }
 
 func (t UserController) GetUsersWithRole(c *gin.Context) {
@@ -183,7 +149,7 @@ func (t UserController) GetUsersWithRole(c *gin.Context) {
 	}
 
 	roles := input.Roles
-	err := models.DB.Where("role IN ?", roles).Find(&users)
+	err := t.DB.Where("role IN ?", roles).Find(&users)
 	if err.Error != nil {
 		c.JSON(http.StatusInternalServerError, models.HTTPError{
 			Code:    http.StatusInternalServerError,

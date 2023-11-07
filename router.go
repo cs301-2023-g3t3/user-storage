@@ -38,11 +38,11 @@ func InitRoutes() {
 	router.Use(cors.Default())
 	router.Use(middlewares.LoggingMiddleware())
 
-	user := new(controllers.UserController)
+    health := new(controllers.HealthController)
+	user := controllers.NewUserController(*models.DB)
 
 	v1 := router.Group("/users")
 
-	health := new(controllers.HealthController)
     healthGroup := v1.Group("/health")
     healthGroup.GET("", health.CheckHealth)
 
