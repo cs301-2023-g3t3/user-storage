@@ -21,7 +21,7 @@ resource "aws_lambda_function" "this" {
   timeout          = 10
 
   vpc_config {
-    subnet_ids         = ["subnet-067ead2dfed1c40f8"]
+    subnet_ids         = ["subnet-067ead2dfed1c40f8", "subnet-07722d2cb666693fd"]
     security_group_ids = ["sg-05a445100fc469383"]
   }
 

@@ -42,6 +42,10 @@ func InitRoutes() {
 
 	v1 := router.Group("/users")
 
+	health := new(controllers.HealthController)
+    healthGroup := v1.Group("/health")
+    healthGroup.GET("", health.CheckHealth)
+
 	// Account Routes
 	usersGroup := v1.Group("/accounts")
 
