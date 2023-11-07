@@ -1,36 +1,47 @@
 package cache
 
 import (
+	"context"
 	"crypto/tls"
-	"log"
 	"os"
 
-	"github.com/go-redis/redis"
+	"github.com/redis/go-redis/v9"
 )
 
-var RedisClient *redis.Client
+
+var RedisClient *redis.ClusterClient
 
 func ConnectToRedis() {
-	var addr string
+	var node1, node2 string
 	if os.Getenv("ENV") != "lambda" {
-		addr = "redis:6379"
+		node1 = "redis:6379"
 	} else {
-		addr = os.Getenv("REDIS_HOST")
-		log.Println(addr)
+		node1 = os.Getenv("REDIS_NODE_1")
+		node2 = os.Getenv("REDIS_NODE_2")
 	}
-	RedisClient = redis.NewClient(&redis.Options{
-		TLSConfig: &tls.Config{
-			MinVersion: tls.VersionTLS12,
-		},
-		Addr:     addr,
-		Password: "",
-		DB:       0,
+	
+	// RedisClient = redis.NewClient(&redis.Options{
+	// 	TLSConfig: &tls.Config{
+	// 		MinVersion: tls.VersionTLS12,
+	// 	},
+	// 	Addr:     addr,
+	// 	Password: "",
+	// 	DB:       0,
+	// })
+
+	RedisClient = redis.NewClusterClient(&redis.ClusterOptions{
+		Addrs:          []string{node1, node2},
+		TLSConfig:      &tls.Config{},
+		ReadOnly:       false,
+		RouteRandomly:  false,
+		RouteByLatency: false,
 	})
-	_, err := RedisClient.Ping().Result()
+
+	ctx := context.Background()
+	err := RedisClient.ForEachShard(ctx, func(ctx context.Context, shard *redis.Client) error {
+		return shard.Ping(ctx).Err()
+	})
 	if err != nil {
-		log.Println(err)
-		log.Fatal("Failed to connect to Redis Cache")
-	} else {
-		log.Println("Connected to Redis Cache")
+		panic(err)
 	}
 }

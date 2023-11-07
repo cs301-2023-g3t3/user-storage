@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"user-storage/cache"
@@ -120,7 +121,7 @@ func (t UserController) UpdateUserById(c *gin.Context) {
         return
     }
 
-    deletedCount, cacheErr := cache.RedisClient.Del(id).Result()
+    deletedCount, cacheErr := cache.RedisClient.Del(context.Background(), id).Result()
 	if cacheErr != nil {
 		fmt.Println("Error:", cacheErr)
 	} else {
@@ -159,7 +160,7 @@ func (t UserController) DeleteUserById(c *gin.Context) {
         return
     }
 
-    deletedCount, cacheErr := cache.RedisClient.Del(id).Result()
+    deletedCount, cacheErr := cache.RedisClient.Del(context.Background(), id).Result()
 	if cacheErr != nil {
 		fmt.Println("Error:", cacheErr)
 	} else {
