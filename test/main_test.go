@@ -1,10 +1,8 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -18,86 +16,68 @@ import (
 	"gorm.io/gorm"
 )
 
-var healthController = new(controllers.HealthController)
-var userController = new(controllers.UserController)
-
-type User struct {
-    Id        string    `json:"id"`
-    FirstName string    `json:"firstName" validate:"required"`
-    LastName  string    `json:"lastName" validate:"required"`
-    Email     string    `json:"email" validate:"required,email"`
-    Role      *uint       `json:"role" gorm:"default:null"`
-}
-
-func SetUpRouter() *gin.Engine{
-    router := gin.Default()
-    return router
-}
-
-func TestHealthCheck(t *testing.T) {
-    mockRes :=  "Success"
-    r := SetUpRouter()
-
-    r.GET("/health", healthController.CheckHealth)
-    req, _ := http.NewRequest("GET", "/health", nil)
-    w := httptest.NewRecorder()
-    r.ServeHTTP(w, req)
-    responseData, _ := ioutil.ReadAll(w.Body)
-    assert.Equal(t, mockRes, string(responseData))
-    assert.Equal(t, http.StatusOK, w.Code)
-}
-
-func TestInsertOne(t *testing.T) {
-    mockDB, mock, err := sqlmock.New()
+func SetUpDB(t *testing.T) (*gorm.DB, sqlmock.Sqlmock){
+    // Create a new GORM DB instance with a mocked SQL database
+    db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
     if err != nil {
-        t.Fatalf("Failed to create mock DB: %v", err)
+        t.Fatalf("Error creating mock DB: %v", err)
     }
-    defer mockDB.Close()
 
-    // Open the mock database using gorm.
+    // Create a GORM DB connection with the MySQL driver
     gormDB, err := gorm.Open(mysql.New(mysql.Config{
-        Conn: mockDB,
+        Conn: db,
         SkipInitializeWithVersion: true,
     }), &gorm.Config{})
     if err != nil {
-        t.Fatalf("Failed to open mock database: %v", err)
+        t.Fatalf("Error creating GORM DB: %v", err)
     }
+
+    gormDB.AutoMigrate(&models.User{})
+    // Insert the mock data
+    roleVal := uint(1)
+    gormDB.Create(&models.User{
+        Id: "1",
+        FirstName: "John",
+        LastName: "Doe",
+        Email: "john@example.com",
+        Role: &roleVal,
+    })
+
+    return gormDB, mock
+}
+
+func TestGetAllUsers(t *testing.T) {
+    gormDB, mock := SetUpDB(t)
 
     userController := controllers.NewUserController(*gormDB)
 
-    expectedQuery := "INSERT INTO users"
-    mock.ExpectExec(expectedQuery).
-        WithArgs("John", "Doe", "johndoe@gmail.com", 2).
-        WillReturnResult(sqlmock.NewResult(1, 1)) // Simulate a successful insert
-
-    userPayload := models.User{
-        FirstName: "John",
-        LastName:  "Doe",
-        Email:     "johndoe@gmail.com",
-    }
-
-    // Create a mock gin.Context for testing
-    ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
-
-    // Serialize your userPayload to JSON
-    userPayloadJSON, err := json.Marshal(userPayload)
+    req, err := http.NewRequest("GET", "/users/accounts", nil)
     if err != nil {
-        t.Fatalf("Failed to marshal userPayload: %v", err)
+        t.Fatalf("an error '%s' was not expected while creating request", err)
     }
 
-    // Create a mock request with the userPayload JSON as the request body
-    req, _ := http.NewRequest("POST", "/users/accounts", bytes.NewReader(userPayloadJSON))
-    req.Header.Set("Content-Type", "application/json")
-    ctx.Request = req
+    recorder := httptest.NewRecorder()
 
-    // Call the function being tested
-    userController.AddUser(ctx)
-    // if err != nil {
-    //     t.Errorf("Failed to add user: %v", err)
-    // }
-    //
-    // // Assert that the expected SQL query was executed
-    // if err := mock.ExpectationsWereMet(); err != nil {
-    //     t.Errorf("SQL expectations were not met: %v", err)
-    // }
+    ctx, _ := gin.CreateTestContext(recorder)
+    ctx.Request = req
+    ctx.Params = gin.Params{}
+    columns := []string{"id", "first_name", "last_name", "email", "role"}
+    expectedRows := sqlmock.NewRows(columns).AddRow("1", "John", "Doe", "john@example.com", 4)
+
+    // Define your expected rows and columns
+    // Set up the mock expectations
+    mock.ExpectQuery("SELECT * FROM `users`").WillReturnRows(expectedRows)
+
+    userController.GetAllUsers(ctx)
+
+    responseBody, err := io.ReadAll(recorder.Body)
+    if err != nil {
+        t.Fatalf("error reading respons body: %v", err)
+    }
+
+    responseBodyStr := string(responseBody)
+    fmt.Println(responseBodyStr)
+
+    // Assertions
+    assert.Equal(t, http.StatusOK, ctx.Writer.Status()) // Check the HTTP status code
 }

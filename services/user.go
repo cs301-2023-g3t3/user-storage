@@ -21,34 +21,36 @@ func NewUserService(db *gorm.DB) *UserService {
 }
 
 
-func (t *UserService) GetAllUsers(users *[]models.User) (int, error) {
+func (t *UserService) GetAllUsers() (*[]models.User, int, error) {
+	var users []models.User
 	err := t.DB.Find(&users)
 	if err.Error != nil {
-		return http.StatusInternalServerError, err.Error
+		return nil, http.StatusInternalServerError, err.Error
 	}
-    return http.StatusOK, nil
+    return &users, http.StatusOK, nil
 }
 
-func (t *UserService) GetUserByID(user *models.User, id string) (int, error) {
+func (t *UserService) GetUserByID(id string) (*models.User, int, error) {
+	var user models.User
 	if id == "" {
-		return http.StatusBadRequest, errors.New("User ID cannot be empty")
+		return nil, http.StatusBadRequest, errors.New("User ID cannot be empty")
 	}
     res := t.DB.Find(&user, "id = ?", id)
 
 	if res.Error != nil {
-        return http.StatusInternalServerError, res.Error
+        return nil, http.StatusInternalServerError, res.Error
 	}
 
     if res.RowsAffected == 0 {
-        return http.StatusNotFound, errors.New("User ID is not found")
+        return nil, http.StatusNotFound, errors.New("User ID is not found")
     }
     
-    return http.StatusOK, nil
+    return &user, http.StatusOK, nil
 }
 
-func (t *UserService) AddUser(user *models.User) (int, error) {
+func (t *UserService) AddUser(user *models.User) (*models.User, int, error) {
     if err := validate.Struct(user); err != nil {
-        return http.StatusBadRequest, err
+        return nil, http.StatusBadRequest, err
     }
 
     user.Id = uuid.NewString()
@@ -56,59 +58,74 @@ func (t *UserService) AddUser(user *models.User) (int, error) {
     res := t.DB.Create(&user)
 
     if res.Error != nil {
-        return http.StatusInternalServerError, res.Error
+        return nil, http.StatusInternalServerError, res.Error
     }
     
-    return http.StatusCreated, nil
+    return user, http.StatusCreated, nil
 }
 
-func (t *UserService) UpdateUserById(user *models.User, id string) (int, error) {
+func (t *UserService) UpdateUserById(user *models.User, id string) (*models.User, int, error) {
 	if id == "" {
-		return http.StatusBadRequest, errors.New("User ID cannot be empty")
+		return nil, http.StatusBadRequest, errors.New("User ID cannot be empty")
 	}
 
     if err := validate.Struct(user); err != nil {
-        return http.StatusBadRequest, err
+        return nil, http.StatusBadRequest, err
     }
 
     existingUser := models.User{}
     if err := t.DB.Where("id = ?", id).First(&existingUser).Error; err != nil {
         if errors.Is(err, gorm.ErrRecordNotFound) {
-            return http.StatusNotFound, errors.New("User not found with given ID")
+            return nil, http.StatusNotFound, errors.New("User not found with given ID")
         } else {
-            return http.StatusInternalServerError, err
+            return nil, http.StatusInternalServerError, err
         }
     }
 
     user.Id = id
 
     // Update the user's data
-    res := t.DB.Model(models.User{Id: id}).Updates(&user).Error
+    err := t.DB.Model(models.User{Id: id}).Updates(&user).Error
 
-    if res != nil {
-        return http.StatusInternalServerError, res
+    if err != nil {
+        return nil, http.StatusInternalServerError, err
     }
 
-    return http.StatusOK, nil
+    return user, http.StatusOK, nil
 }
 
-func (t *UserService) DeleteUserById (existingUser *models.User, id string) (int, error) {
+func (t *UserService) DeleteUserById (id string) (*models.User, int, error) {
     if id == "" {
-        return http.StatusBadRequest, errors.New("User ID cannot be empty")
+        return nil, http.StatusBadRequest, errors.New("User ID cannot be empty")
     }
 
+    var existingUser models.User
     if err := t.DB.Where("id = ?", id).First(&existingUser).Error; err != nil {
         if errors.Is(err, gorm.ErrRecordNotFound) {
-            return http.StatusNotFound, errors.New("User not found with given ID")
+            return nil, http.StatusNotFound, errors.New("User not found with given ID")
         } else {
-            return http.StatusInternalServerError, err
+            return nil, http.StatusInternalServerError, err
         }
     }
 
     err := t.DB.Where("id = ?", id).Delete(&existingUser).Error
     if err != nil {
-        return http.StatusInternalServerError, err
+        return nil, http.StatusInternalServerError, err
     }
 
-    return http.StatusOK, nil
+    return &existingUser, http.StatusOK, nil
+}
+
+func (t *UserService) GetUsersWithRole(roles []int) (*[]models.User, int, error) {
+	var users []models.User
+    err := t.DB.Where("role IN ?", roles).Find(&users).Error
+    if err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            return nil, http.StatusNotFound, errors.New("Cannot find users with given roles")
+        } else {
+            return nil, http.StatusInternalServerError, err
+        }
+    }
+
+    return &users, http.StatusOK, nil
 }
