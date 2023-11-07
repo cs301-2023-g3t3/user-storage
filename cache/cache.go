@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"crypto/tls"
 	"log"
 	"os"
 
@@ -18,6 +19,9 @@ func ConnectToRedis() {
 		log.Println(addr)
 	}
 	RedisClient = redis.NewClient(&redis.Options{
+		TLSConfig: &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		},
 		Addr:     addr,
 		Password: "",
 		DB:       0,
