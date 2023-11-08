@@ -6,7 +6,6 @@ import (
 	"user-storage/models"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -53,12 +52,11 @@ func (t *UserService) AddUser(user *models.User) (*models.User, int, error) {
         return nil, http.StatusBadRequest, err
     }
 
-    user.Id = uuid.NewString()
-
-    res := t.DB.Create(&user)
-
-    if res.Error != nil {
-        return nil, http.StatusInternalServerError, res.Error
+    tx := t.DB.Begin()
+    err := tx.Create(&user).Error
+    if err != nil {
+        tx.Rollback()
+        return nil, http.StatusInternalServerError, err
     }
     
     return user, http.StatusCreated, nil
