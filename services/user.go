@@ -58,6 +58,7 @@ func (t *UserService) AddUser(user *models.User) (*models.User, int, error) {
         tx.Rollback()
         return nil, http.StatusInternalServerError, err
     }
+    tx.Commit()
     
     return user, http.StatusCreated, nil
 }
@@ -71,8 +72,9 @@ func (t *UserService) UpdateUserById(user *models.User, id string) (*models.User
         return nil, http.StatusBadRequest, err
     }
 
+    tx := t.DB.Begin()
     existingUser := models.User{}
-    if err := t.DB.Where("id = ?", id).First(&existingUser).Error; err != nil {
+    if err := tx.Where("id = ?", id).First(&existingUser).Error; err != nil {
         if errors.Is(err, gorm.ErrRecordNotFound) {
             return nil, http.StatusNotFound, errors.New("User not found with given ID")
         } else {
@@ -83,11 +85,13 @@ func (t *UserService) UpdateUserById(user *models.User, id string) (*models.User
     user.Id = id
 
     // Update the user's data
-    err := t.DB.Model(models.User{Id: id}).Updates(&user).Error
+    err := tx.Model(models.User{Id: id}).Updates(&user).Error
 
     if err != nil {
+        tx.Rollback()
         return nil, http.StatusInternalServerError, err
     }
+    tx.Commit()
 
     return user, http.StatusOK, nil
 }
@@ -97,8 +101,9 @@ func (t *UserService) DeleteUserById (id string) (*models.User, int, error) {
         return nil, http.StatusBadRequest, errors.New("User ID cannot be empty")
     }
 
+    tx := t.DB.Begin()
     var existingUser models.User
-    if err := t.DB.Where("id = ?", id).First(&existingUser).Error; err != nil {
+    if err := tx.Where("id = ?", id).First(&existingUser).Error; err != nil {
         if errors.Is(err, gorm.ErrRecordNotFound) {
             return nil, http.StatusNotFound, errors.New("User not found with given ID")
         } else {
@@ -106,10 +111,12 @@ func (t *UserService) DeleteUserById (id string) (*models.User, int, error) {
         }
     }
 
-    err := t.DB.Where("id = ?", id).Delete(&existingUser).Error
+    err := tx.Where("id = ?", id).Delete(&existingUser).Error
     if err != nil {
+        tx.Rollback()
         return nil, http.StatusInternalServerError, err
     }
+    tx.Commit()
 
     return &existingUser, http.StatusOK, nil
 }

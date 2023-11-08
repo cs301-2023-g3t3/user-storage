@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"user-storage/models"
@@ -11,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetUpDB() (*gorm.DB, *sql.DB, sqlmock.Sqlmock){
+func SetUpDB() (*gorm.DB, sqlmock.Sqlmock){
     // Create a new GORM DB instance with a mocked SQL database
     db, mock, err := sqlmock.New()
     if err != nil {
@@ -24,7 +23,10 @@ func SetUpDB() (*gorm.DB, *sql.DB, sqlmock.Sqlmock){
     gormDB, err := gorm.Open(mysql.New(mysql.Config{
         Conn:                      db,
 		DriverName:                "mysql",
-    }), &gorm.Config{})
+		SkipInitializeWithVersion: false,
+    }), &gorm.Config{
+            SkipDefaultTransaction: true,
+        })
     if err != nil {
         log.Fatalf("Error creating GORM DB: %v", err)
     }
@@ -41,5 +43,5 @@ func SetUpDB() (*gorm.DB, *sql.DB, sqlmock.Sqlmock){
         })
     }
     
-    return gormDB, db, mock
+    return gormDB, mock
 }
