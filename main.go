@@ -1,7 +1,7 @@
 package main
 
 import (
-	"user-storage/cache"
+	// "user-storage/cache"
 	"user-storage/models"
 
 	log "github.com/sirupsen/logrus"
@@ -9,7 +9,7 @@ import (
 
 func init() {
 	models.ConnectToDB()
-	cache.ConnectToRedis()
+	// cache.ConnectToRedis()
 	log.SetFormatter(&log.JSONFormatter{})
 
 }

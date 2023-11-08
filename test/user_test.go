@@ -90,6 +90,7 @@ func TestGetUserById_NotFound(t *testing.T) {
         WillReturnError(gorm.ErrRecordNotFound)
 
     res, statusCode, err := userService.GetUserByID(invalidId)
+    fmt.Println(err.Error())
 
     assert.Error(t, err, gorm.ErrRecordNotFound)
     assert.Equal(t, http.StatusNotFound, statusCode) 
@@ -154,8 +155,8 @@ func TestUpdateUserById(t *testing.T) {
     row := sqlmock.NewRows(columns).AddRow("1", "John1", "Doe", "john1@example.com", 1)
 
 
-    statement := "SELECT * FROM `users` WHERE id = ?"
     mock.ExpectBegin()
+    statement := "SELECT * FROM `users` WHERE id = ?"
     mock.ExpectQuery(regexp.QuoteMeta(statement)).
         WithArgs("1").
         WillReturnRows(row)

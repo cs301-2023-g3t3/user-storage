@@ -34,16 +34,14 @@ func (t *UserService) GetUserByID(id string) (*models.User, int, error) {
 	if id == "" {
 		return nil, http.StatusBadRequest, errors.New("User ID cannot be empty")
 	}
-    res := t.DB.Find(&user, "id = ?", id)
-
-	if res.Error != nil {
-        return nil, http.StatusInternalServerError, res.Error
+    err := t.DB.First(&user, "id = ?", id).Error
+	if err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            return nil, http.StatusNotFound, errors.New("User ID is not found")
+        }
+        return nil, http.StatusInternalServerError, err
 	}
 
-    if res.RowsAffected == 0 {
-        return nil, http.StatusNotFound, errors.New("User ID is not found")
-    }
-    
     return &user, http.StatusOK, nil
 }
 
