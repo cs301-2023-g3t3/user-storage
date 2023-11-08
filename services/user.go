@@ -99,24 +99,30 @@ func (t *UserService) DeleteUserById (id string) (*models.User, int, error) {
         return nil, http.StatusBadRequest, errors.New("User ID cannot be empty")
     }
 
-    tx := t.DB.Begin()
-    var existingUser models.User
-    if err := tx.Where("id = ?", id).First(&existingUser).Error; err != nil {
-        if errors.Is(err, gorm.ErrRecordNotFound) {
-            return nil, http.StatusNotFound, errors.New("User not found with given ID")
-        } else {
-            return nil, http.StatusInternalServerError, err
-        }
+    existingUser, code, err := t.GetUserByID(id)
+    if err != nil {
+        return nil, code, err
     }
 
-    err := tx.Where("id = ?", id).Delete(&existingUser).Error
+    tx := t.DB.Begin()
+ //    var existingUser models.User
+ //    err := tx.First(&existingUser, "id = ?", id).Error
+	// if err != nil {
+ //        tx.Rollback()
+ //        if errors.Is(err, gorm.ErrRecordNotFound) {
+ //            return nil, http.StatusNotFound, errors.New("User ID is not found")
+ //        }
+ //        return nil, http.StatusInternalServerError, err
+	// }
+
+    err = tx.Where("id = ?", id).Delete(existingUser).Error
     if err != nil {
         tx.Rollback()
         return nil, http.StatusInternalServerError, err
     }
     tx.Commit()
 
-    return &existingUser, http.StatusOK, nil
+    return existingUser, http.StatusOK, nil
 }
 
 func (t *UserService) GetUsersWithRole(roles []int) (*[]models.User, int, error) {

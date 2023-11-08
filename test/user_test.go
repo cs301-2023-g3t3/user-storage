@@ -236,28 +236,3 @@ func TestUpdateUserById_NotFound(t *testing.T) {
     assert.Equal(t, http.StatusNotFound, statusCode)
     assert.Nil(t, res)
 }
-
-// func TestDeleteUserById(t *testing.T){
-//     id, firstName, lastName, email, role := "1", "John1", "Doe", "john1@example.com", uint(1)
-//     row := sqlmock.NewRows(columns).AddRow(id, firstName, lastName, email, role)
-//
-//     mock.ExpectBegin()
-//     mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE id = ?")).
-//         WithArgs(id).
-//         WillReturnRows(row)
-//
-//     mock.ExpectQuery(regexp.QuoteMeta("DELETE FROM `users`")).
-//         WithArgs(id).
-//         WillReturnRows(row)
-//     mock.ExpectCommit()
-//
-//     userService := services.NewUserService(gormDB)
-//     res, statusCode, err := userService.DeleteUserById(id)
-//     if err != nil {
-//         t.Fatal(err)
-//     }
-//
-//     assert.NoError(t, err)
-//     assert.Equal(t, http.StatusOK, statusCode)
-//     assert.Equal(t, "Success", *res)
-// }
