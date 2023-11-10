@@ -9,6 +9,7 @@ import (
 	"user-storage/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/ip2location/ip2location-go/v9"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -38,13 +39,18 @@ func LoggingMiddleware() gin.HandlerFunc {
 			// Access the UserAgent and SourceIP
 			userAgent = metadata.UserAgent
 			sourceIP = metadata.SourceIP
-
-			fmt.Println("UserAgent in middleware: ", userAgent)
-			fmt.Println("SourceIP in middleware: ", sourceIP)
 		}
 
 		// Logs for user accounts
 		if strings.Contains(reqUri, "/accounts") {
+			db, err := ip2location.OpenDB("./IP-COUNTRY-REGION-CITY-LATITUDE-LONGITUDE-ZIPCODE-TIMEZONE-ISP-DOMAIN-NETSPEED-AREACODE-WEATHER-MOBILE-ELEVATION-USAGETYPE-ADDRESSTYPE-CATEGORY-DISTRICT-ASN.BIN")
+			if err != nil {
+				fmt.Print(err)
+				return
+			}
+
+			results, _ := db.Get_all(sourceIP)
+			region := results.Region
 			user, _ := ctx.Get("user")
 			userValue, _ := user.(models.User)
 
@@ -54,14 +60,14 @@ func LoggingMiddleware() gin.HandlerFunc {
 				if reqMethod == http.MethodPost {
 					action = "add user"
 				} else if reqMethod == http.MethodPut {
-					action = "update user"
+					action = "update user details"
 					newUser, _ := ctx.Get("updatedUser")
 					newUserValue, _ := newUser.(models.User)
 					updatedUserFields = log.Fields{
 						"id":        newUserValue.Id,
-						"firstName": newUserValue.FirstName,
-						"lastName":  newUserValue.LastName,
-						"email":     newUserValue.Email,
+						// "firstName": newUserValue.FirstName,
+						// "lastName":  newUserValue.LastName,
+						// "email":     newUserValue.Email,
 						"role":      newUserValue.Role,
 					}
 				} else if reqMethod == http.MethodDelete {
@@ -70,9 +76,9 @@ func LoggingMiddleware() gin.HandlerFunc {
 
 				userFields := log.Fields{
 					"id":        userValue.Id,
-					"firstName": userValue.FirstName,
-					"lastName":  userValue.LastName,
-					"email":     userValue.Email,
+					// "firstName": userValue.FirstName,
+					// "lastName":  userValue.LastName,
+					// "email":     userValue.Email,
 					"role":      userValue.Role,
 				}
 
@@ -86,7 +92,8 @@ func LoggingMiddleware() gin.HandlerFunc {
 					"ACTION":               action,
 					"USER_AGENT":           userAgent,
 					"SOURCE_IP":            sourceIP,
-				}).Info("ACCOUNT REQUEST")
+					"LOCATION":             region,
+				}).Info("USER DETAILS REQUEST")
 			}
 		}
 
