@@ -9,7 +9,6 @@ import (
 	"user-storage/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/ip2location/ip2location-go/v9"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -43,14 +42,6 @@ func LoggingMiddleware() gin.HandlerFunc {
 
 		// Logs for user accounts
 		if strings.Contains(reqUri, "/accounts") {
-			db, err := ip2location.OpenDB("./IP-COUNTRY-REGION-CITY-LATITUDE-LONGITUDE-ZIPCODE-TIMEZONE-ISP-DOMAIN-NETSPEED-AREACODE-WEATHER-MOBILE-ELEVATION-USAGETYPE-ADDRESSTYPE-CATEGORY-DISTRICT-ASN.BIN")
-			if err != nil {
-				fmt.Print(err)
-				return
-			}
-
-			results, _ := db.Get_all(sourceIP)
-			region := results.Region
 			user, _ := ctx.Get("user")
 			userValue, _ := user.(models.User)
 
@@ -92,7 +83,6 @@ func LoggingMiddleware() gin.HandlerFunc {
 					"ACTION":               action,
 					"USER_AGENT":           userAgent,
 					"SOURCE_IP":            sourceIP,
-					"LOCATION":             region,
 				}).Info("USER DETAILS REQUEST")
 			}
 		}
