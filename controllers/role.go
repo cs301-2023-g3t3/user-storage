@@ -10,6 +10,13 @@ import (
 
 type RoleController struct{}
 
+//  @Summary        Get all Roles
+//  @Description    Retrieves a list of Roles 
+//  @Tags           roles
+//  @Produce        json
+//  @Success        200     {array}     models.Role
+//  @Failure        500     {object}    models.HTTPError
+//  @Router         /roles  [get]
 func (t RoleController) GetAllRoles(c *gin.Context) {
 	var roles []models.Role
 	err := models.DB.Find(&roles)
@@ -23,6 +30,16 @@ func (t RoleController) GetAllRoles(c *gin.Context) {
 	c.JSON(http.StatusOK, roles)
 }
 
+//  @Summary        Get Role by Id
+//  @Description    Retrieve a Role By RoleID
+//  @Tags           roles
+//  @Produce        json
+//  @Param          id      path    string  true    "id"
+//  @Success        200     {object}    models.Role
+//  @Failure        400     {object}    models.HTTPError    "RoleId cannot be empy"
+//  @Failure        404     {object}    models.HTTPError    "Role not found with Id"
+//  @Failure        500     {object}    models.HTTPError
+//  @Router         /roles/{id}   [get]
 func (t RoleController) GetRoleByID(c *gin.Context) {
 	var roles models.Role
 	id := c.Param("id")
@@ -46,6 +63,15 @@ func (t RoleController) GetRoleByID(c *gin.Context) {
 	c.JSON(http.StatusOK, roles)
 }
 
+//  @Summary        Add a Role
+//  @Description    Add a Role into Database
+//  @Tags           roles
+//  @Produce        json
+//  @Param          role    body        models.Role     true    "Role Details"
+//  @Success        200     {object}    models.Role
+//  @Failure        400     {object}    models.HTTPError    "Bad request due to invalid JSON body"
+//  @Failure        500     {object}    models.HTTPError
+//  @Router         /roles  [post]
 func (t RoleController) AddRole(c *gin.Context) {
 	var role models.Role
 	if err := c.BindJSON(&role); err != nil {
@@ -73,6 +99,16 @@ func (t RoleController) AddRole(c *gin.Context) {
 	c.JSON(http.StatusOK, role)
 }
 
+//  @Summary        Update Role Details by Id
+//  @Description    Update a Role By RoleId
+//  @Tags           roles
+//  @Produce        json
+//  @Param          id      path    string  true    "id"
+//  @Success        200     {object}    models.Role
+//  @Failure        400     {object}    models.HTTPError    "Bad request due to invalid JSON body"
+//  @Failure        404     {object}    models.HTTPError    "Role not found with Id"
+//  @Failure        500     {object}    models.HTTPError
+//  @Router         /roles/{id}   [put]
 func (t RoleController) UpdateRoleById(c *gin.Context) {
 	var role models.Role
 	id := c.Param("id")
@@ -121,6 +157,16 @@ func (t RoleController) UpdateRoleById(c *gin.Context) {
 	c.JSON(http.StatusOK, existingRole)
 }
 
+//  @Summary        Delete a Role by Id
+//  @Description    Delete a Role By RoleID
+//  @Tags           roles
+//  @Produce        json
+//  @Param          id      path    string  true    "id"
+//  @Success        200     "Success"   
+//  @Failure        400     {object}    models.HTTPError    "Bad request due to empty string Id"
+//  @Failure        404     {object}    models.HTTPError    "Role not found with Id"
+//  @Failure        500     {object}    models.HTTPError
+//  @Router         /roles/{id}   [delete]
 func (t RoleController) DeleteRoleById(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {

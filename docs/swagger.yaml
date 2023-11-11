@@ -1,0 +1,487 @@
+definitions:
+  controllers.Input:
+    properties:
+      roles:
+        items:
+          type: integer
+        type: array
+    required:
+    - roles
+    type: object
+  models.HTTPError:
+    properties:
+      code:
+        example: 400
+        type: integer
+      message:
+        example: status bad request
+        type: string
+    type: object
+  models.Role:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  models.RoleAccess:
+    properties:
+      apId:
+        type: integer
+      roleId:
+        type: integer
+    required:
+    - apId
+    - roleId
+    type: object
+  models.User:
+    properties:
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: string
+      lastName:
+        type: string
+      role:
+        type: integer
+    required:
+    - email
+    - firstName
+    - lastName
+    type: object
+info:
+  contact: {}
+paths:
+  /accounts:
+    get:
+      description: Retrieves a list of users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      summary: Get all Users
+      tags:
+      - users
+    post:
+      description: Add a User into Database
+      parameters:
+      - description: User Details
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad request due to invalid JSON body
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      summary: Add a User
+      tags:
+      - users
+  /accounts/{id}:
+    delete:
+      description: Delete a User By UserID
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+        "400":
+          description: Bad request due to empty string Id
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "404":
+          description: User not found with Id
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      summary: Delete a User by Id
+      tags:
+      - users
+    get:
+      description: Retrieve a User By UserID
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "400":
+          description: UserId cannot be empy
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "404":
+          description: User not found with Id
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      summary: Get User by Id
+      tags:
+      - users
+    put:
+      description: Update a User By UserID
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad request due to invalid JSON body
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "404":
+          description: User not found with Id
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      summary: Update User Details by Id
+      tags:
+      - users
+  /accounts/paginate:
+    get:
+      description: Retrieves a list of users
+      parameters:
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: size
+        in: query
+        name: size
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "400":
+          description: Invalid parameters
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      summary: Get all Users by Pagination
+      tags:
+      - users
+  /accounts/with-roles:
+    post:
+      description: Get a list of users with roles
+      parameters:
+      - description: roles
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.Input'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+        "400":
+          description: Bad request due to invalid JSON body
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "404":
+          description: Cannot find users with given roles
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      summary: Get a list of users with roles
+      tags:
+      - users
+  /health:
+    get:
+      description: Check the health of the service
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Sucess
+      summary: Get Health
+      tags:
+      - health
+  /role-access:
+    delete:
+      description: Delete a Role Access
+      parameters:
+      - description: Role ID
+        in: body
+        name: role_id
+        required: true
+        schema:
+          type: string
+      - description: Access Point ID
+        in: body
+        name: ap_id
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+        "400":
+          description: Bad request due to invalid JSON object
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "404":
+          description: Role access is not found given role_id and ap_id
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      summary: Delete a Role Access
+      tags:
+      - role-access
+    get:
+      description: Retrieves a list of Role Access
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.RoleAccess'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      summary: Get all Role Accesses
+      tags:
+      - role-access
+    post:
+      description: Add a Role Access into Database
+      parameters:
+      - description: Role Access Details
+        in: body
+        name: role-access
+        required: true
+        schema:
+          $ref: '#/definitions/models.RoleAccess'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.RoleAccess'
+        "400":
+          description: Bad request due to invalid JSON body
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      summary: Add a Role Access
+      tags:
+      - role-access
+  /roles:
+    get:
+      description: Retrieves a list of Roles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Role'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      summary: Get all Roles
+      tags:
+      - roles
+    post:
+      description: Add a Role into Database
+      parameters:
+      - description: Role Details
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/models.Role'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Role'
+        "400":
+          description: Bad request due to invalid JSON body
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      summary: Add a Role
+      tags:
+      - roles
+  /roles/{id}:
+    delete:
+      description: Delete a Role By RoleID
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+        "400":
+          description: Bad request due to empty string Id
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "404":
+          description: Role not found with Id
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      summary: Delete a Role by Id
+      tags:
+      - roles
+    get:
+      description: Retrieve a Role By RoleID
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Role'
+        "400":
+          description: RoleId cannot be empy
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "404":
+          description: Role not found with Id
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      summary: Get Role by Id
+      tags:
+      - roles
+    put:
+      description: Update a Role By RoleId
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Role'
+        "400":
+          description: Bad request due to invalid JSON body
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "404":
+          description: Role not found with Id
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      summary: Update Role Details by Id
+      tags:
+      - roles
+swagger: "2.0"
