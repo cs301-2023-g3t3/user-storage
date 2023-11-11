@@ -30,6 +30,10 @@ data "aws_ssm_parameter" "redis_node_2" {
   name = "redis_node_2"
 }
 
+data "aws_ssm_parameter" "jwt_secret" {
+  name = "jwt_secret"
+}
+
 output "existing_role_arn" {
     value = data.aws_iam_role.existing_role.arn
 }
