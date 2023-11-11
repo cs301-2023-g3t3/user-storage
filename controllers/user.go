@@ -30,6 +30,14 @@ func NewUserController(db gorm.DB) *UserController {
 
 var validate = validator.New()
 
+
+//  @Summary        Get all Users
+//  @Description    Retrieves a list of users
+//  @Tags           users
+//  @Produce        json
+//  @Success        200     {array}     models.User
+//  @Failure        500     {object}    models.HTTPError
+//  @Router         /accounts   [get]
 func (t UserController) GetAllUsers(c *gin.Context) {
 	users, code, err := t.UserService.GetAllUsers()
 	if err != nil {
@@ -42,6 +50,16 @@ func (t UserController) GetAllUsers(c *gin.Context) {
 	c.JSON(code, *users)
 }
 
+//  @Summary        Get all Users by Pagination
+//  @Description    Retrieves a list of users
+//  @Tags           users
+//  @Produce        json
+//  @Param          page    query   int     true    "page"
+//  @Param          size    query   int     true    "size"
+//  @Success        200     {array}     models.User
+//  @Failure        400     {object}    models.HTTPError    "Invalid parameters"
+//  @Failure        500     {object}    models.HTTPError
+//  @Router         /accounts/paginate   [get]
 func (t UserController) GetPaginatedUsers(c *gin.Context) {
 	page := c.DefaultQuery("page", "1")
 	pageSize := c.DefaultQuery("size", "10")
@@ -79,6 +97,16 @@ func (t UserController) GetPaginatedUsers(c *gin.Context) {
 	})
 }
 
+//  @Summary        Get User by Id
+//  @Description    Retrieve a User By UserID
+//  @Tags           users
+//  @Produce        json
+//  @Param          id      path    string  true    "id"
+//  @Success        200     {array}     models.User
+//  @Failure        400     {object}    models.HTTPError    "UserId cannot be empy"
+//  @Failure        404     {object}    models.HTTPError    "User not found with Id"
+//  @Failure        500     {object}    models.HTTPError
+//  @Router         /accounts/{id}   [get]
 func (t UserController) GetUserByID(c *gin.Context) {
 	id := c.Param("id")
 
@@ -94,6 +122,15 @@ func (t UserController) GetUserByID(c *gin.Context) {
 	c.JSON(http.StatusOK, *user)
 }
 
+//  @Summary        Add a User
+//  @Description    Add a User into Database
+//  @Tags           users
+//  @Produce        json
+//  @Param          user    body        models.User     true    "User Details"
+//  @Success        200     {object}    models.User
+//  @Failure        400     {object}    models.HTTPError    "Bad request due to invalid JSON body"
+//  @Failure        500     {object}    models.HTTPError
+//  @Router         /accounts   [post]
 func (t UserController) AddUser(c *gin.Context) {
 	var user models.User
 	decoder := json.NewDecoder(c.Request.Body)
@@ -118,6 +155,16 @@ func (t UserController) AddUser(c *gin.Context) {
 	c.JSON(code, *res)
 }
 
+//  @Summary        Update User Details by Id
+//  @Description    Update a User By UserID
+//  @Tags           users
+//  @Produce        json
+//  @Param          id      path    string  true    "id"
+//  @Success        200     {object}    models.User
+//  @Failure        400     {object}    models.HTTPError    "Bad request due to invalid JSON body"
+//  @Failure        404     {object}    models.HTTPError    "User not found with Id"
+//  @Failure        500     {object}    models.HTTPError
+//  @Router         /accounts/{id}   [put]
 func (t UserController) UpdateUserById(c *gin.Context) {
 	id := c.Param("id")
 	var user models.User
@@ -136,7 +183,7 @@ func (t UserController) UpdateUserById(c *gin.Context) {
 	if err != nil {
 		c.JSON(code, models.HTTPError{
 			Code:    code,
-			Message: fmt.Sprintf("Unable to updated user. %v", err.Error()),
+			Message: fmt.Sprintf("Unable to update user. %v", err.Error()),
 		})
 		return
 	}
@@ -149,11 +196,20 @@ func (t UserController) UpdateUserById(c *gin.Context) {
 	// }
 
 	// Return the updated user
-    fmt.Println("testing123")
 	c.Set("updatedUser", *res)
 	c.JSON(code, *res)
 }
 
+//  @Summary        Delete a User by Id
+//  @Description    Delete a User By UserID
+//  @Tags           users
+//  @Produce        json
+//  @Param          id      path    string  true    "id"
+//  @Success        200     "Success"   
+//  @Failure        400     {object}    models.HTTPError    "Bad request due to empty string Id"
+//  @Failure        404     {object}    models.HTTPError    "User not found with Id"
+//  @Failure        500     {object}    models.HTTPError
+//  @Router         /accounts/{id}   [delete]
 func (t UserController) DeleteUserById(c *gin.Context) {
 	id := c.Param("id")
 
@@ -177,10 +233,23 @@ func (t UserController) DeleteUserById(c *gin.Context) {
 	c.JSON(http.StatusOK, "Success")
 }
 
+
+type Input struct {
+    Roles []int `json:"roles" validate:"required"`
+}
+
+//  @Summary        Get a list of users with roles
+//  @Description    Get a list of users with roles
+//  @Tags           users
+//  @Produce        json
+//  @Param          user    body    Input    true    "roles"
+//  @Success        200     "Success"   
+//  @Failure        400     {object}    models.HTTPError    "Bad request due to invalid JSON body"
+//  @Failure        404     {object}    models.HTTPError    "Cannot find users with given roles"
+//  @Failure        500     {object}    models.HTTPError
+//  @Router         /accounts/with-roles   [post]
 func (t UserController) GetUsersWithRole(c *gin.Context) {
-	var input struct {
-		Roles []int `json:"roles" validate:"required"`
-	}
+    var input Input
 	if err := c.BindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
