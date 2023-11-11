@@ -1,24 +1,62 @@
-package main
+package services
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"regexp"
 	"testing"
 	"user-storage/models"
-	"user-storage/services"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 var columns = []string{"id", "first_name", "last_name", "email", "role"}
+
 var gormDB, mock = SetUpDB()
+
+func SetUpDB() (*gorm.DB, sqlmock.Sqlmock){
+    // Create a new GORM DB instance with a mocked SQL database
+    db, mock, err := sqlmock.New()
+    if err != nil {
+        log.Fatalf("Error creating mock DB: %v", err)
+    }
+
+
+    mock.ExpectQuery("SELECT VERSION()").WillReturnRows(sqlmock.NewRows([]string{"VERSION()"}).AddRow("5.7.34"))
+    // Create a GORM DB connection with the MySQL driver
+    gormDB, err := gorm.Open(mysql.New(mysql.Config{
+        Conn:                      db,
+		DriverName:                "mysql",
+		SkipInitializeWithVersion: false,
+    }), &gorm.Config{
+            SkipDefaultTransaction: true,
+        })
+    if err != nil {
+        log.Fatalf("Error creating GORM DB: %v", err)
+    }
+
+    gormDB.AutoMigrate(&models.User{})
+
+    // Insert multiple mock user data into the database
+    for i := 1; i <= 10; i++ {
+        gormDB.Create(&models.User{
+            Id: fmt.Sprint(i),
+            FirstName: fmt.Sprintf("John%d", i),
+            LastName: "Doe",
+            Email: fmt.Sprintf("john%d@example.com", i),
+        })
+    }
+    
+    return gormDB, mock
+}
 
 func TestGetAllUsers(t *testing.T) {
 
-    userService := services.NewUserService(gormDB)
+    userService := NewUserService(gormDB)
 
     rows := sqlmock.NewRows(columns)
 
@@ -53,7 +91,7 @@ func TestGetAllUsers(t *testing.T) {
 
 func TestGetUserById(t *testing.T) {
     
-    userService := services.NewUserService(gormDB)
+    userService := NewUserService(gormDB)
 
     role := uint(1)
     expectedUser := models.User{
@@ -80,7 +118,7 @@ func TestGetUserById(t *testing.T) {
 
 func TestGetUserById_NotFound(t *testing.T) {
     
-    userService := services.NewUserService(gormDB)
+    userService := NewUserService(gormDB)
     invalidId := "6969"
 
     statement := "SELECT * FROM `users` WHERE id = ?"
@@ -116,7 +154,7 @@ func TestAddUser_Success(t *testing.T) {
         Role:      &role,
     }
 
-    userService := services.NewUserService(gormDB)
+    userService := NewUserService(gormDB)
     res, statusCode, err := userService.AddUser(&user)
     if err != nil {
         t.Fatalf("Error getting user by ID: %v", err)
@@ -133,7 +171,7 @@ func TestAddUser_Success(t *testing.T) {
 func TestAddUser_BadRequest(t *testing.T) {
     firstName, lastName, role := "Marilyn", "Monroe", uint(2)
 
-    userService := services.NewUserService(gormDB)
+    userService := NewUserService(gormDB)
 
     user := models.User{
         FirstName: firstName,
@@ -176,7 +214,7 @@ func TestUpdateUserById(t *testing.T) {
         Role:      &role,
     }
 
-    userService := services.NewUserService(gormDB)
+    userService := NewUserService(gormDB)
     res, statusCode, err := userService.UpdateUserById(&user, id)
     if err != nil {
         t.Fatal(err)
@@ -193,7 +231,7 @@ func TestUpdateUserById(t *testing.T) {
 func TestUpdateUserById_BadRequest(t *testing.T) {
     firstName, lastName, role := "Marilyn", "Monroe", uint(2)
 
-    userService := services.NewUserService(gormDB)
+    userService := NewUserService(gormDB)
 
     user := models.User{
         FirstName: firstName,
@@ -220,7 +258,7 @@ func TestUpdateUserById_NotFound(t *testing.T) {
         WillReturnError(gorm.ErrRecordNotFound)
     mock.ExpectCommit()
 
-    userService := services.NewUserService(gormDB)
+    userService := NewUserService(gormDB)
 
     user := models.User{
         FirstName: firstName,
