@@ -50,6 +50,7 @@ func InitRoutes() {
 	usersGroup := v1.Group("/accounts")
 
 	usersGroup.GET("", user.GetAllUsers)
+	usersGroup.GET("/paginate", user.GetPaginatedUsers)
 	usersGroup.GET("/:id", user.GetUserByID)
 
 	usersGroup.POST("", user.AddUser)

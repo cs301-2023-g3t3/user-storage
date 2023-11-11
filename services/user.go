@@ -29,6 +29,18 @@ func (t *UserService) GetAllUsers() (*[]models.User, int, error) {
     return &users, http.StatusOK, nil
 }
 
+func (t *UserService) GetPaginatedUsers(page, pageSize int) (*[]models.User, int, error) {
+    var users []models.User
+
+    offset := (page - 1) * pageSize
+    err := t.DB.Offset(offset).Limit(pageSize).Find(&users)
+    if err.Error != nil {
+        return nil, http.StatusInternalServerError, err.Error
+    }
+
+    return &users, http.StatusOK, nil
+}
+
 func (t *UserService) GetUserByID(id string) (*models.User, int, error) {
 	var user models.User
 	if id == "" {
