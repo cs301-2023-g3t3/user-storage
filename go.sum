@@ -2,8 +2,6 @@ github.com/DATA-DOG/go-sqlmock v1.3.0 h1:ljjRxlddjfChBJdFKJs5LuCwCWPLaC1UZLwAo3P
 github.com/DATA-DOG/go-sqlmock v1.3.0/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
 github.com/aws/aws-lambda-go v1.41.0 h1:l/5fyVb6Ud9uYd411xdHZzSf2n86TakxzpvIoz7l+3Y=
 github.com/aws/aws-lambda-go v1.41.0/go.mod h1:jwFe2KmMsHmffA1X2R09hH6lFzJQxzI8qK17ewzbQMM=
-github.com/aws/aws-sdk-go v1.47.9 h1:rarTsos0mA16q+huicGx0e560aYRtOucV5z2Mw23JRY=
-github.com/aws/aws-sdk-go v1.47.9/go.mod h1:LF8svs817+Nz+DmiMQKTO3ubZ/6IaTpq3TjupRn3Eqk=
 github.com/awslabs/aws-lambda-go-api-proxy v0.15.0 h1:0xG48rLv0ZYYCtBSYKip31LnL1yVk8LTUHM9H3wqadw=
 github.com/awslabs/aws-lambda-go-api-proxy v0.15.0/go.mod h1:DPHlODrQDzpZ5IGRueOmrXthxReqhHHIAnHpI2nsaTw=
 github.com/bsm/ginkgo/v2 v2.12.0 h1:Ny8MWAHyOepLGlLKYmXG4IEkioBysk6GpaRTLC8zwWs=
