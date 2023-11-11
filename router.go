@@ -127,7 +127,7 @@ func InitRoutes() {
 	roleAccessesGroup.DELETE("", roleAccess.DeleteRoleAccess)
 
     // Swagger
-    router.GET("swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+    v1.GET("swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	env := os.Getenv("ENV")
 	if env == "lambda" {
