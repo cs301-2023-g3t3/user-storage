@@ -53,6 +53,7 @@ func InitRoutes() {
 	usersGroup.GET("/paginate", user.GetPaginatedUsers)
 	usersGroup.GET("/:id", user.GetUserByID)
 
+	usersGroup.Use(middlewares.DecodeJWT())
 	usersGroup.POST("", user.AddUser)
 	usersGroup.POST("/with-roles", user.GetUsersWithRole)
 
@@ -67,6 +68,8 @@ func InitRoutes() {
 
 	rolesGroup.GET("", role.GetAllRoles)
 	rolesGroup.GET("/:id", role.GetRoleByID)
+
+	rolesGroup.Use(middlewares.DecodeJWT())
 
 	rolesGroup.POST("", role.AddRole)
 

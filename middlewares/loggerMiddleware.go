@@ -2,6 +2,7 @@
 package middlewares
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -40,9 +41,29 @@ func LoggingMiddleware() gin.HandlerFunc {
 		}
 
 		// Logs for user accounts
-		if strings.Contains(reqUri, "/accounts") {
+		if strings.Contains(reqUri, "/accounts") && !strings.Contains(reqUri, "/accounts/with-roles"){
 			user, _ := ctx.Get("user")
 			userValue, _ := user.(models.User)
+
+			data, ok := ctx.Get("userDetails")
+			if !ok {
+				ctx.JSON(http.StatusInternalServerError, models.HTTPError{
+					Code: http.StatusInternalServerError,
+					Message: "Error",
+				})
+				ctx.Abort()
+
+			}
+			userDetailsObj, ok := data.(map[string]interface{})
+			if !ok {
+				ctx.JSON(http.StatusInternalServerError, models.HTTPError{
+					Code: http.StatusInternalServerError,
+					Message: "Error",
+				}) 
+				ctx.Abort()
+			}
+
+			fmt.Println(userDetailsObj)
 
 			if reqMethod == http.MethodPost || reqMethod == http.MethodPut || reqMethod == http.MethodDelete {
 				var action string
@@ -54,22 +75,22 @@ func LoggingMiddleware() gin.HandlerFunc {
 					newUser, _ := ctx.Get("updatedUser")
 					newUserValue, _ := newUser.(models.User)
 					updatedUserFields = log.Fields{
-						"id":        newUserValue.Id,
+						"id": newUserValue.Id,
 						// "firstName": newUserValue.FirstName,
 						// "lastName":  newUserValue.LastName,
 						// "email":     newUserValue.Email,
-						"role":      newUserValue.Role,
+						"role": newUserValue.Role,
 					}
 				} else if reqMethod == http.MethodDelete {
 					action = "delete user"
 				}
 
 				userFields := log.Fields{
-					"id":        userValue.Id,
+					"id": userValue.Id,
 					// "firstName": userValue.FirstName,
 					// "lastName":  userValue.LastName,
 					// "email":     userValue.Email,
-					"role":      userValue.Role,
+					"role": userValue.Role,
 				}
 
 				log.WithFields(log.Fields{
@@ -77,6 +98,7 @@ func LoggingMiddleware() gin.HandlerFunc {
 					"URI":                  reqUri,
 					"STATUS":               statusCode,
 					"LATENCY":              latencyTime,
+					"ACTOR":                userDetailsObj["user_id"],
 					"USER_DETAILS":         userFields,
 					"UPDATED_USER_DETAILS": updatedUserFields,
 					"ACTION":               action,

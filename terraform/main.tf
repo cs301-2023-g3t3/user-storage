@@ -33,8 +33,9 @@ resource "aws_lambda_function" "this" {
       DB_USER      = data.aws_ssm_parameter.db_user.value
       DB_PASSWORD  = data.aws_ssm_parameter.db_password.value
       DB_NAME      = "itsa"
-      REDIS_NODE_1 = data.aws_ssm_parameter.redis_node_1.value
-      REDIS_NODE_2 = data.aws_ssm_parameter.redis_node_2.value
+      JWT_SECRET     = data.aws_ssm_parameter.jwt_secret.value
+      # REDIS_NODE_1 = data.aws_ssm_parameter.redis_node_1.value
+      # REDIS_NODE_2 = data.aws_ssm_parameter.redis_node_2.value
     }
   }
 }

@@ -1,12 +1,12 @@
 package controllers
 
 import (
-	"context"
+	// "context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
-	"user-storage/cache"
+	// "user-storage/cache"
 	"user-storage/models"
 	"user-storage/services"
 
@@ -136,19 +136,20 @@ func (t UserController) UpdateUserById(c *gin.Context) {
 	if err != nil {
 		c.JSON(code, models.HTTPError{
 			Code:    code,
-			Message: fmt.Sprintf("Unable to create user. %v", err.Error()),
+			Message: fmt.Sprintf("Unable to updated user. %v", err.Error()),
 		})
 		return
 	}
 
-	deletedCount, cacheErr := cache.RedisClient.Del(context.Background(), id).Result()
-	if cacheErr != nil {
-		fmt.Println("Error:", cacheErr)
-	} else {
-		fmt.Printf("Deleted %d keys\n", deletedCount)
-	}
+	// deletedCount, cacheErr := cache.RedisClient.Del(context.Background(), id).Result()
+	// if cacheErr != nil {
+	// 	fmt.Println("Error:", cacheErr)
+	// } else {
+	// 	fmt.Printf("Deleted %d keys\n", deletedCount)
+	// }
 
 	// Return the updated user
+    fmt.Println("testing123")
 	c.Set("updatedUser", *res)
 	c.JSON(code, *res)
 }
@@ -165,12 +166,12 @@ func (t UserController) DeleteUserById(c *gin.Context) {
 		return
 	}
 
-	deletedCount, cacheErr := cache.RedisClient.Del(context.Background(), id).Result()
-	if cacheErr != nil {
-		fmt.Println("Error:", cacheErr)
-	} else {
-		fmt.Printf("Deleted %d keys\n", deletedCount)
-	}
+	// deletedCount, cacheErr := cache.RedisClient.Del(context.Background(), id).Result()
+	// if cacheErr != nil {
+	// 	fmt.Println("Error:", cacheErr)
+	// } else {
+	// 	fmt.Printf("Deleted %d keys\n", deletedCount)
+	// }
 
 	c.Set("user", *res)
 	c.JSON(http.StatusOK, "Success")
@@ -190,6 +191,7 @@ func (t UserController) GetUsersWithRole(c *gin.Context) {
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 		})
+        return
 	}
 
 	roles := input.Roles
