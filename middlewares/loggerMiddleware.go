@@ -2,7 +2,7 @@
 package middlewares
 
 import (
-	"fmt"
+	// "fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -41,31 +41,29 @@ func LoggingMiddleware() gin.HandlerFunc {
 		}
 
 		// Logs for user accounts
-		if strings.Contains(reqUri, "/accounts") && !strings.Contains(reqUri, "/accounts/with-roles"){
-			user, _ := ctx.Get("user")
-			userValue, _ := user.(models.User)
-
-			data, ok := ctx.Get("userDetails")
-			if !ok {
-				ctx.JSON(http.StatusInternalServerError, models.HTTPError{
-					Code: http.StatusInternalServerError,
-					Message: "Error",
-				})
-				ctx.Abort()
-
-			}
-			userDetailsObj, ok := data.(map[string]interface{})
-			if !ok {
-				ctx.JSON(http.StatusInternalServerError, models.HTTPError{
-					Code: http.StatusInternalServerError,
-					Message: "Error",
-				}) 
-				ctx.Abort()
-			}
-
-			fmt.Println(userDetailsObj)
-
+		if strings.Contains(reqUri, "/accounts") && !strings.Contains(reqUri, "/accounts/with-roles") {
 			if reqMethod == http.MethodPost || reqMethod == http.MethodPut || reqMethod == http.MethodDelete {
+
+				user, _ := ctx.Get("user")
+				userValue, _ := user.(models.User)
+
+				data, ok := ctx.Get("userDetails")
+				if !ok {
+					ctx.JSON(http.StatusInternalServerError, models.HTTPError{
+						Code:    http.StatusInternalServerError,
+						Message: "Error",
+					})
+					ctx.Abort()
+
+				}
+				userDetailsObj, ok := data.(map[string]interface{})
+				if !ok {
+					ctx.JSON(http.StatusInternalServerError, models.HTTPError{
+						Code:    http.StatusInternalServerError,
+						Message: "Error",
+					})
+					ctx.Abort()
+				}
 				var action string
 				var updatedUserFields log.Fields
 				if reqMethod == http.MethodPost {
