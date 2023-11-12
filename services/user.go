@@ -20,12 +20,27 @@ func NewUserService(db *gorm.DB) *UserService {
 }
 
 
-func (t *UserService) GetAllUsers() (*[]models.User, int, error) {
-	var users []models.User
-	err := t.DB.Find(&users)
-	if err.Error != nil {
-		return nil, http.StatusInternalServerError, err.Error
-	}
+func (t *UserService) GetAllUsers(role int, id, name, email string) (*[]models.User, int, error) {
+    var users []models.User
+
+    query := t.DB
+    if id != "" {
+        query = query.Where("id = ?", id)
+    }
+    if role != 0 {
+        query = query.Where("role = ?", role)
+    }
+    if name != "" {
+        query = query.Where("first_name = ? OR last_name = ?", name, name)
+    }
+    if email != "" {
+        query = query.Where("email = ?", email)
+    }
+
+    if err := query.Find(&users).Error; err != nil {
+        return nil, http.StatusInternalServerError, err
+    }
+	
     return &users, http.StatusOK, nil
 }
 

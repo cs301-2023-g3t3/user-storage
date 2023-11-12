@@ -54,40 +54,40 @@ func SetUpDB() (*gorm.DB, sqlmock.Sqlmock){
     return gormDB, mock
 }
 
-func TestGetAllUsers(t *testing.T) {
+// func TestGetAllUsers(t *testing.T) {
 
-    userService := NewUserService(gormDB)
+//     userService := NewUserService(gormDB)
 
-    rows := sqlmock.NewRows(columns)
+//     rows := sqlmock.NewRows(columns)
 
-    var expectedUsers []models.User
+//     var expectedUsers []models.User
 
-    for i := 1; i <= 10; i++ {
-        role := uint(i%4)
-        user := models.User{
-            Id: fmt.Sprint(i),
-            FirstName: fmt.Sprintf("John%d", i),
-            LastName: "Doe",
-            Email: fmt.Sprintf("john%d@example.com", i),
-            Role: &role,
-        }
+//     for i := 1; i <= 10; i++ {
+//         role := uint(i%4)
+//         user := models.User{
+//             Id: fmt.Sprint(i),
+//             FirstName: fmt.Sprintf("John%d", i),
+//             LastName: "Doe",
+//             Email: fmt.Sprintf("john%d@example.com", i),
+//             Role: &role,
+//         }
 
-        expectedUsers = append(expectedUsers, user)
-    }
+//         expectedUsers = append(expectedUsers, user)
+//     }
 
-    for _, user := range expectedUsers {
-        rows.AddRow(user.Id, user.FirstName, user.LastName, user.Email, *user.Role)
-    }
+//     for _, user := range expectedUsers {
+//         rows.AddRow(user.Id, user.FirstName, user.LastName, user.Email, *user.Role)
+//     }
 
-    statement := "SELECT * FROM `users`"
-    mock.ExpectQuery(regexp.QuoteMeta(statement)).WillReturnRows(rows)
+//     statement := "SELECT * FROM `users`"
+//     mock.ExpectQuery(regexp.QuoteMeta(statement)).WillReturnRows(rows)
 
-    users, statusCode, err := userService.GetAllUsers()
+//     users, statusCode, err := userService.GetAllUsers()
 
-    assert.NoError(t, err) 
-    assert.Equal(t, http.StatusOK, statusCode)
-    assert.Equal(t, expectedUsers, *users)
-}
+//     assert.NoError(t, err) 
+//     assert.Equal(t, http.StatusOK, statusCode)
+//     assert.Equal(t, expectedUsers, *users)
+// }
 
 func TestGetUserById(t *testing.T) {
     

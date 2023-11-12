@@ -39,7 +39,20 @@ var validate = validator.New()
 //  @Failure        500     {object}    models.HTTPError
 //  @Router         /accounts   [get]
 func (t UserController) GetAllUsers(c *gin.Context) {
-	users, code, err := t.UserService.GetAllUsers()
+	id := c.DefaultQuery("id", "")
+	role := c.DefaultQuery("role", "0")
+	name := c.DefaultQuery("name", "")
+	email := c.DefaultQuery("email", "")
+
+	roleInt, err := strconv.Atoi(role)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, models.HTTPError{
+            Code:    http.StatusBadRequest,
+            Message: "Invalid page parameter",
+        })
+        return
+    }
+	users, code, err := t.UserService.GetAllUsers(roleInt, id, name ,email)
 	if err != nil {
 		c.JSON(code, models.HTTPError{
 			Code:    code,
