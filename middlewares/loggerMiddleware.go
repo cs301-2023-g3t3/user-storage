@@ -120,6 +120,24 @@ func LoggingMiddleware() gin.HandlerFunc {
 				var action string
 				var updatedRoleFields log.Fields
 
+				data, ok := ctx.Get("userDetails")
+				if !ok {
+					ctx.JSON(http.StatusInternalServerError, models.HTTPError{
+						Code:    http.StatusInternalServerError,
+						Message: "Error",
+					})
+					ctx.Abort()
+
+				}
+				userDetailsObj, ok := data.(map[string]interface{})
+				if !ok {
+					ctx.JSON(http.StatusInternalServerError, models.HTTPError{
+						Code:    http.StatusInternalServerError,
+						Message: "Error",
+					})
+					ctx.Abort()
+				}
+
 				if reqMethod == http.MethodPost {
 					action = "add role"
 				} else if reqMethod == http.MethodPut {
@@ -139,6 +157,7 @@ func LoggingMiddleware() gin.HandlerFunc {
 					"URI":                  reqUri,
 					"STATUS":               statusCode,
 					"LATENCY":              latencyTime,
+					"ACTOR":                userDetailsObj["user_id"],
 					"ROLE_DETAILS":         roleFields,
 					"UPDATED_ROLE_DETAILS": updatedRoleFields,
 					"ACTION":               action,
