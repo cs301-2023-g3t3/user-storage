@@ -78,7 +78,6 @@ func InitRoutes() {
 	usersGroup.GET("/paginate", user.GetPaginatedUsers)
 	usersGroup.GET("/:id", user.GetUserByID)
 
-	usersGroup.Use(middlewares.DecodeJWT())
 	usersGroup.POST("", user.AddUser)
 	usersGroup.POST("/with-roles", user.GetUsersWithRole)
 

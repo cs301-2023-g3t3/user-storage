@@ -44,6 +44,30 @@ func (t UserController) GetAllUsers(c *gin.Context) {
 	name := c.DefaultQuery("name", "")
 	email := c.DefaultQuery("email", "")
 
+	data, ok := c.Get("userDetails")
+	if !ok {
+		c.JSON(http.StatusInternalServerError, models.HTTPError{
+			Code:    http.StatusInternalServerError,
+			Message: "Error",
+		})
+		return
+
+	}
+	userDetailsObj, ok := data.(map[string]interface{})
+	if !ok {
+		c.JSON(http.StatusInternalServerError, models.HTTPError{
+			Code:    http.StatusInternalServerError,
+			Message: "Error",
+		})
+		return
+	}
+	fmt.Println("User Role: ", userDetailsObj["role"])
+
+	// Check if user is product manager
+	if userDetailsObj["role"] == "Product Manager" {
+		role = "0"
+	}
+
 	roleInt, err := strconv.Atoi(role)
     if err != nil {
         c.JSON(http.StatusBadRequest, models.HTTPError{

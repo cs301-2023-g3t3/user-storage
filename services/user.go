@@ -28,10 +28,9 @@ func (t *UserService) GetAllUsers(role int, id, name, email string) (*[]models.U
     if id != "" {
         query = query.Where("id LIKE ?", fmt.Sprint(id,"%"))
     }
-    if role != -1 && role > 0{
+    if role != -1 && role != 0{
         query = query.Where("role = ?", role)
-    }
-    if role == 0 {
+    } else if role == 0 {
         query = query.Where("role IS NULL")
     }
     if name != "" {
