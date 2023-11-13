@@ -243,7 +243,9 @@ func (t UserController) DeleteUserById(c *gin.Context) {
 	// }
 
 	c.Set("user", *res)
-	c.JSON(http.StatusOK, "Success")
+	c.JSON(http.StatusOK, gin.H{
+		"data":       "Success",
+	})
 }
 
 
