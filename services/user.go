@@ -33,7 +33,6 @@ func (t *UserService) GetAllUsers(role int, id, name, email string) (*[]models.U
     } else if role == 0 {
         query = query.Where("role IS NULL")
     }
-    
     if name != "" {
         query = query.Where("first_name LIKE ? OR last_name LIKE ?", fmt.Sprint(name,"%"), fmt.Sprint(name,"%"))
     }

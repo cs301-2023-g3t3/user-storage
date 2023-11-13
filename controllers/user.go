@@ -72,7 +72,7 @@ func (t UserController) GetAllUsers(c *gin.Context) {
     if err != nil {
         c.JSON(http.StatusBadRequest, models.HTTPError{
             Code:    http.StatusBadRequest,
-            Message: "Invalid page parameter",
+            Message: "Invalid role parameter",
         })
         return
     }
