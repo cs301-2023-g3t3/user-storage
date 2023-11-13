@@ -72,6 +72,7 @@ func InitRoutes() {
 
 	// Account Routes
 	usersGroup := v1.Group("/accounts")
+	usersGroup.Use(middlewares.DecodeJWT())
 
 	usersGroup.GET("", user.GetAllUsers)
 	usersGroup.GET("/paginate", user.GetPaginatedUsers)

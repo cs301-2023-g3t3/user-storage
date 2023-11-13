@@ -226,6 +226,33 @@ func (t UserController) UpdateUserById(c *gin.Context) {
 func (t UserController) DeleteUserById(c *gin.Context) {
 	id := c.Param("id")
 
+	data, ok := c.Get("userDetails")
+	if !ok {
+		c.JSON(http.StatusInternalServerError, models.HTTPError{
+			Code:    http.StatusInternalServerError,
+			Message: "Error",
+		})
+		return
+
+	}
+	userDetailsObj, ok := data.(map[string]interface{})
+	if !ok {
+		c.JSON(http.StatusInternalServerError, models.HTTPError{
+			Code:    http.StatusInternalServerError,
+			Message: "Error",
+		})
+		return
+	}
+
+	// Validate if user is deleting own account
+	if userDetailsObj["user_id"] == id {
+		c.JSON(http.StatusForbidden, models.HTTPError{
+			Code:    http.StatusForbidden,
+			Message: "Cannot delete own account",
+		})
+		return
+	}
+
 	res, code, err := t.UserService.DeleteUserById(id)
 	if err != nil {
 		c.JSON(code, models.HTTPError{
