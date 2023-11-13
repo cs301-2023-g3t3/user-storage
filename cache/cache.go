@@ -20,14 +20,6 @@ func ConnectToRedis() {
 		node2 = os.Getenv("REDIS_NODE_2")
 	}
 	
-	// RedisClient = redis.NewClient(&redis.Options{
-	// 	TLSConfig: &tls.Config{
-	// 		MinVersion: tls.VersionTLS12,
-	// 	},
-	// 	Addr:     addr,
-	// 	Password: "",
-	// 	DB:       0,
-	// })
 
 	RedisClient = redis.NewClusterClient(&redis.ClusterOptions{
 		Addrs:          []string{node1, node2},
