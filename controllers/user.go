@@ -40,9 +40,33 @@ var validate = validator.New()
 //  @Router         /accounts   [get]
 func (t UserController) GetAllUsers(c *gin.Context) {
 	id := c.DefaultQuery("id", "")
-	role := c.DefaultQuery("role", "0")
+	role := c.DefaultQuery("role", "-1")
 	name := c.DefaultQuery("name", "")
 	email := c.DefaultQuery("email", "")
+
+	data, ok := c.Get("userDetails")
+	if !ok {
+		c.JSON(http.StatusInternalServerError, models.HTTPError{
+			Code:    http.StatusInternalServerError,
+			Message: "Error",
+		})
+		return
+
+	}
+	userDetailsObj, ok := data.(map[string]interface{})
+	if !ok {
+		c.JSON(http.StatusInternalServerError, models.HTTPError{
+			Code:    http.StatusInternalServerError,
+			Message: "Error",
+		})
+		return
+	}
+	fmt.Println("User Role: ", userDetailsObj["role"])
+
+	// Check if user is product manager
+	if userDetailsObj["role"] == "Product Manager" {
+		role = "0"
+	}
 
 	roleInt, err := strconv.Atoi(role)
     if err != nil {
